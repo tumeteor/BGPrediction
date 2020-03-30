@@ -1,6 +1,6 @@
 # BGPrediction
 
-This documentation is for the Glycorec Blood Glucose Prediction. 
+This code base is the Blood Glucose Prediction for BMBF [Glycorec](https://www.pfh.de/hochschule/forschung/forschungsprojekt-glycorec.html) project.
 
 ### Prerequisites
 
