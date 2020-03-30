@@ -14,11 +14,13 @@ from prediction.models.FixedModel import FixedModel
 from prediction.models.rf_incremental import RandomForest as irf
 from prediction.clf_models.crf_incremental import RFClassifier as icc
 from ExperimentData import con
+
+
 ### Factory manager class for classifiers ####
 class CLFManager:
 
     @staticmethod
-    def factory(patientId=None, dbConnection=con,model=None):
+    def factory(patientId=None, dbConnection=con, model=None):
         '''
         :param patientId:
         :param dbConnection:
@@ -47,11 +49,8 @@ class CLFManager:
         if model == "rfc": return RandomForestClassifier(patientId, dbConnection, modelName="rf")
         if model == "etc": return RandomForestClassifier(patientId, dbConnection, modelName="et")
         if model == "svm": return SVM(patientId, dbConnection)
-        if model == "dummy": return Dummy(patientId,dbConnection)
+        if model == "dummy": return Dummy(patientId, dbConnection)
         if model == "nb": return NB(patientId, dbConnection)
         if model == "global": return GlobalRandomForest(modelName="rf")
         if model == "icc": return icc(patientId, dbConnection, modelName="rf")
         assert 0, "Bad predictive model creation: " + model
-
-
-
