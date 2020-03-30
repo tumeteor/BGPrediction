@@ -4,7 +4,7 @@ This documentation is for the Glycorec Blood Glucose Prediction.
 
 ### Prerequisites
 
-Python (>= 2.7 or >= 3.3,  
+Python (== 2.7),  
 NumPy (>= 1.8.2),  
 SciPy (>= 0.13.3),  
 Scikit-learn (>=0.16),  
