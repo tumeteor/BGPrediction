@@ -20,7 +20,7 @@ class BaseRegressor(object):
         self.carb_data = list()
         self.activity_data = list()
         # load data necessary for ARIMA
-        self.discretizedData = list()
+        self.discretized_data = list()
 
         ###### LOAD DATA ######
         ###### do not change line order ###
@@ -168,7 +168,7 @@ class BaseRegressor(object):
         min_date = min(df['bg'].index)
         max_date = max(df['bg'].index)
         df = df[min_date:max_date]
-        self.discretizedData = df.values
+        self.discretized_data = df.values
 
     ''''' load the raw timestamp for blood glucose data '''
 

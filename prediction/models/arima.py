@@ -21,8 +21,8 @@ class ARIMA(BaseRegressor):
         return ";".join(seq)
 
     def predict(self):
-        size = int(len(self.discretizedData) * self.split_ratio)
-        train, test = self.discretizedData[0:size], self.discretizedData[size:len(self.discretizedData)]
+        size = int(len(self.discretized_data) * self.split_ratio)
+        train, test = self.discretized_data[0:size], self.discretized_data[size:len(self.discretized_data)]
         print("number of test instances including nan: {}".format(len(test)))
         # remove missing values
         train = train[numpy.logical_not(numpy.isnan(train))]
