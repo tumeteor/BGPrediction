@@ -1,5 +1,5 @@
 import datetime
-from util.measures import getTimeBinInt
+from util.measures import get_time_bin_int
 from util.measures import mean
 from util.TimeUtil import tohour
 import numpy as np
@@ -60,7 +60,7 @@ class FeatureManager:
         :return: time period of day
         """
         # TODO: rename method
-        time_bin_feature = Feature("timeBin", getTimeBinInt(t))
+        time_bin_feature = Feature("timeBin", get_time_bin_int(t))
         self.context_feature_group.add_feature(time_bin_feature)
 
 
@@ -84,7 +84,7 @@ class FeatureManager:
             bzc = bz - (korrekturregel[0] * ie)
             print "predicted bg1: {} and old: {} and insulin: {}".format(bzc,bz, ie)
         elif il_case == "rapid": #prandial or rapid + take at mealtime
-            carb_factor = carb_factors[getTimeBinInt(t)]
+            carb_factor = carb_factors[get_time_bin_int(t)]
             # expected insulin
             iee = carb * carb_factor
             korrekturfaktor = 15 # describe how much bg after 1 unit rapid /
@@ -123,7 +123,7 @@ class FeatureManager:
 
         # TODO: trend?
         # avg of previous glucose values in same time bin
-        # features.append(avg([p['value'] for p in prev_glucose if getTimeBinInt(p['time']) == cur_time_bin]))
+        # features.append(avg([p['value'] for p in prev_glucose if get_time_bin_int(p['time']) == cur_time_bin]))
         # decreasing weight w/ difference in time
         avg_prev = 0.0
         avg_prev_w = 0.0

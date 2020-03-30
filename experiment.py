@@ -4,7 +4,7 @@ import logging
 from argparse import ArgumentParser
 
 from prediction.patient_experiment import PatientPredictionExperiment
-from util.measures import computePerformanceMetrics
+from util.measures import compute_performance_metrics
 from collections import defaultdict
 import ExperimentData
 
@@ -283,11 +283,11 @@ class PredictionExperiment:
             results_overall['meal_121m-180m'] = self.aggregate_results(res_meal_third)
             results_overall['meal_181m-240m'] = self.aggregate_results(res_meal_fourth)
             results_overall['meal_240m'] = self.aggregate_results(res_meal_four)
-            results_overall['hypoglycemia'] = computePerformanceMetrics(
+            results_overall['hypoglycemia'] = compute_performance_metrics(
                 groundtruth=low_glucose,
                 predictions=low_predictions)
             self.log.debug("low_glucose: {} and prediction: {}".format(low_glucose, low_predictions))
-            results_overall['hyperglycemia'] = computePerformanceMetrics(
+            results_overall['hyperglycemia'] = compute_performance_metrics(
                 groundtruth=high_glucose,
                 predictions=high_predictions
             )

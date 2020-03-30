@@ -70,7 +70,7 @@ class ContextAVG(BaseRegressor):
                  rolling average of previous glucose values
         """
         # avg of previous glucose values in same time bin
-        # features.append(avg([p['value'] for p in prev_glucose if getTimeBinInt(p['time']) == cur_time_bin]))
+        # features.append(avg([p['value'] for p in prev_glucose if get_time_bin_int(p['time']) == cur_time_bin]))
         # decreasing weight w/ difference in time
         avg_prev = 0.0
         avg_prev_w = 0.0

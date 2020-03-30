@@ -9,7 +9,7 @@ import pandas as pd
 import numpy
 from util.measures import compute_performance_time_binned
 from util.measures import compute_performance_meals
-from util.measures import getTimeBinInt
+from util.measures import get_time_bin_int
 from prediction.base_regressor import BaseRegressor
 import math
 class LSTMs(BaseRegressor):
@@ -82,7 +82,7 @@ class LSTMs(BaseRegressor):
     def create_periods(df):
         times = []
         for idx, row in df.iterrows():
-            times.append(getTimeBinInt(idx))
+            times.append(get_time_bin_int(idx))
         return times
 
 

@@ -1,5 +1,5 @@
 from prediction.base_regressor import BaseRegressor
-from util.measures import getTimeBinInt, mean_absolute_percentage_error, mean_squared_error, median_absolute_error, convert_mg_to_mmol
+from util.measures import get_time_bin_int, mean_absolute_percentage_error, mean_squared_error, median_absolute_error, convert_mg_to_mmol
 import logging
 import numpy as np
 class FixedModel(BaseRegressor):
@@ -41,7 +41,7 @@ class FixedModel(BaseRegressor):
             bzc = bz - (korrekturregel * ie)
             #print "predicted bg1: {} and old: {} and insulin: {}".format(bzc,bz, ie)
         elif il_case == "rapid": #prandial or rapid + take at mealtime
-            carb_factor = carb_factors[getTimeBinInt(t)]
+            carb_factor = carb_factors[get_time_bin_int(t)]
             # expected insulin
             iee = carb * carb_factor
 

@@ -5,8 +5,10 @@ import numpy as np
 import datetime
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from PlotUtil import save_confusion_matrix
+
 np.seterr(divide='ignore', invalid='ignore')
 import pprint
+
 pp = pprint.PrettyPrinter(indent=2)
 
 _night = "night"
@@ -14,7 +16,9 @@ _morning = "morning"
 _afternoon = "afternoon"
 _evening = "evening"
 
-def compute_performance_time_binned(groundtruth, predictions, timestamps=None, regression=True, plotConfusionMatrix=False, classes=None, patientId=None, model=None):
+
+def compute_performance_time_binned(groundtruth, predictions, timestamps=None, regression=True,
+                                    plotConfusionMatrix=False, classes=None, patientId=None, model=None):
     """
     Discretizes timestamps into night, morning, afternoon and evening and returns performance metrics for each time
     bin, as well as overall performance metrics
@@ -25,9 +29,10 @@ def compute_performance_time_binned(groundtruth, predictions, timestamps=None, r
     """
     results = dict()
     # first compute results for all data
-    results['all'] = computePerformanceMetrics(groundtruth, predictions) if regression else toClfResult(groundtruth, predictions)
+    results['all'] = compute_performance_metrics(groundtruth, predictions) if regression else to_clf_result(groundtruth,
+                                                                                                            predictions)
     # discretize timestamps
-    timebins = [getTimeBin(timestamp) for timestamp in timestamps]
+    timebins = [get_time_bin(timestamp) for timestamp in timestamps]
     # bit ugly :( needs to do for now
     gt_night = list()
     pred_night = list()
@@ -51,10 +56,14 @@ def compute_performance_time_binned(groundtruth, predictions, timestamps=None, r
             gt_evening.append(groundtruth[idx])
             pred_evening.append(predictions[idx])
     # call measurements function for each time bin
-    results[_night] = computePerformanceMetrics(gt_night, pred_night) if regression else toClfResult(gt_night, pred_night)
-    results[_morning] = computePerformanceMetrics(gt_morning, pred_morning) if regression else toClfResult(gt_morning, pred_morning)
-    results[_afternoon] = computePerformanceMetrics(gt_afternoon, pred_afternoon) if regression else toClfResult(gt_afternoon, pred_afternoon)
-    results[_evening] = computePerformanceMetrics(gt_evening, pred_evening) if regression else toClfResult(gt_evening, pred_evening)
+    results[_night] = compute_performance_metrics(gt_night, pred_night) if regression else to_clf_result(gt_night,
+                                                                                                         pred_night)
+    results[_morning] = compute_performance_metrics(gt_morning, pred_morning) if regression else to_clf_result(gt_morning,
+                                                                                                               pred_morning)
+    results[_afternoon] = compute_performance_metrics(gt_afternoon, pred_afternoon) if regression else to_clf_result(
+        gt_afternoon, pred_afternoon)
+    results[_evening] = compute_performance_metrics(gt_evening, pred_evening) if regression else to_clf_result(gt_evening,
+                                                                                                               pred_evening)
 
     if not regression:
         from sklearn.metrics import confusion_matrix
@@ -81,35 +90,37 @@ def compute_performance_time_binned(groundtruth, predictions, timestamps=None, r
         r['all'] = dict()
         i = 0
         for cls in set(groundtruth):
-            r['all'][cls] = perClassResult(cm, i, classes[cls])
+            r['all'][cls] = per_class_result(cm, i, classes[cls])
             i += 1
         i = 0
         for cls in set(gt_night):
-            r[_night][cls] = perClassResult(cm_night, i, classes[cls])
+            r[_night][cls] = per_class_result(cm_night, i, classes[cls])
             i += 1
         i = 0
         for cls in set(gt_morning):
-            r[_morning][cls] = perClassResult(cm_morning, i, classes[cls])
+            r[_morning][cls] = per_class_result(cm_morning, i, classes[cls])
             i += 1
         i = 0
         for cls in set(gt_afternoon):
-            r[_afternoon][cls] = perClassResult(cm_afternoon, i, classes[cls])
+            r[_afternoon][cls] = per_class_result(cm_afternoon, i, classes[cls])
             i += 1
         i = 0
         for cls in set(gt_evening):
-            r[_evening][cls] = perClassResult(cm_evening, i, classes[cls])
+            r[_evening][cls] = per_class_result(cm_evening, i, classes[cls])
             i += 1
         return results, r
     return results
 
-def compute_performance_meals(groundtruth, predictions, timestamps=None, carbdata=None, regression=True, plotConfusionMatrix=False, classes=None, patientId=None, model=None):
+
+def compute_performance_meals(groundtruth, predictions, timestamps=None, carbdata=None, regression=True,
+                              plotConfusionMatrix=False, classes=None, patientId=None, model=None):
     """
     Compute performance metrics for subsets of the results based on the time elapsed to the last meal.
     """
     # track time to last meal before measurement
     last_meal_deltas = list()
     for idx, timestamp in enumerate(timestamps):
-        last_meal_deltas.append(getMinutesFromLastMeal(carbdata, timestamp))
+        last_meal_deltas.append(get_minutes_from_last_meal(carbdata, timestamp))
 
     # generate subsets based on time elapsed after last meal
     gt_first_hour = list()
@@ -144,11 +155,19 @@ def compute_performance_meals(groundtruth, predictions, timestamps=None, carbdat
             pred_fourhours.append(pred)
     # compute performance
     results = dict()
-    results["meal_60m"] = computePerformanceMetrics(gt_first_hour, pred_first_hour) if regression else toClfResult(gt_first_hour, pred_first_hour)
-    results["meal_61m-120m"] = computePerformanceMetrics(gt_second_hour, pred_second_hour) if regression else toClfResult(gt_second_hour, pred_second_hour)
-    results["meal_121m-180m"] = computePerformanceMetrics(gt_third_hour, pred_third_hour) if regression else toClfResult(gt_third_hour, pred_third_hour)
-    results["meal_181m-240m"] = computePerformanceMetrics(gt_fourth_hour, pred_fourth_hour) if regression else toClfResult(gt_fourth_hour, pred_fourth_hour)
-    results["meal_240m"] = computePerformanceMetrics(gt_fourhours, pred_fourhours) if regression else toClfResult(gt_fourhours, pred_fourhours)
+    results["meal_60m"] = compute_performance_metrics(gt_first_hour, pred_first_hour) if regression else to_clf_result(
+        gt_first_hour, pred_first_hour)
+    results["meal_61m-120m"] = compute_performance_metrics(gt_second_hour,
+                                                           pred_second_hour) if regression else to_clf_result(
+        gt_second_hour, pred_second_hour)
+    results["meal_121m-180m"] = compute_performance_metrics(gt_third_hour,
+                                                            pred_third_hour) if regression else to_clf_result(gt_third_hour,
+                                                                                                              pred_third_hour)
+    results["meal_181m-240m"] = compute_performance_metrics(gt_fourth_hour,
+                                                            pred_fourth_hour) if regression else to_clf_result(
+        gt_fourth_hour, pred_fourth_hour)
+    results["meal_240m"] = compute_performance_metrics(gt_fourhours, pred_fourhours) if regression else to_clf_result(
+        gt_fourhours, pred_fourhours)
 
     if not regression:
         from sklearn.metrics import confusion_matrix
@@ -177,31 +196,30 @@ def compute_performance_meals(groundtruth, predictions, timestamps=None, carbdat
         r["meal_240m"] = dict()
         i = 0
         for cls in set(gt_first_hour):
-            r["meal_60m"][cls] = perClassResult(cm_60m, i, classes[cls])
+            r["meal_60m"][cls] = per_class_result(cm_60m, i, classes[cls])
             i += 1
         i = 0
         for cls in set(gt_second_hour):
-            r["meal_61m-120m"][cls] = perClassResult(cm_61m_120m, i, classes[cls])
+            r["meal_61m-120m"][cls] = per_class_result(cm_61m_120m, i, classes[cls])
             i += 1
         i = 0
         for cls in set(gt_third_hour):
-            r["meal_121m-180m"][cls] = perClassResult(cm_121m_180m, i, classes[cls])
+            r["meal_121m-180m"][cls] = per_class_result(cm_121m_180m, i, classes[cls])
             i += 1
         i = 0
         for cls in set(gt_fourth_hour):
-            r["meal_181m-240m"][cls] = perClassResult(cm_181m_240m, i, classes[cls])
+            r["meal_181m-240m"][cls] = per_class_result(cm_181m_240m, i, classes[cls])
             i += 1
         i = 0
         for cls in set(gt_fourhours):
-            r["meal_240m"][cls] = perClassResult(cm_240m, i, classes[cls])
+            r["meal_240m"][cls] = per_class_result(cm_240m, i, classes[cls])
             i += 1
 
         return results, r
     return results
 
 
-
-def getMinutesFromLastMeal(carbdata, timestamp):
+def get_minutes_from_last_meal(carbdata, timestamp):
     last_time = datetime.datetime.min
     if carbdata[0]["time"] > timestamp:
         return None
@@ -213,7 +231,7 @@ def getMinutesFromLastMeal(carbdata, timestamp):
             last_time = cur_time
 
 
-def getTimeBin(timestamp):
+def get_time_bin(timestamp):
     """
     Return the time bin for the given datetime input
     :param timestamp: datetime object
@@ -228,18 +246,19 @@ def getTimeBin(timestamp):
     end_afternoon = datetime.time(17, 59, 59)
     start_evening = datetime.time(18, 0, 0)
     end_evening = datetime.time(23, 59, 59)
-    if checkTimeInterval(timestamp, start_night, end_night):
+    if check_time_interval(timestamp, start_night, end_night):
         return _night
-    if checkTimeInterval(timestamp, start_morning, end_morning):
+    if check_time_interval(timestamp, start_morning, end_morning):
         return _morning
-    if checkTimeInterval(timestamp, start_afternoon, end_afternoon):
+    if check_time_interval(timestamp, start_afternoon, end_afternoon):
         return _afternoon
-    if checkTimeInterval(timestamp, start_evening, end_evening):
+    if check_time_interval(timestamp, start_evening, end_evening):
         return _evening
     raise ArithmeticError
 
-def getTimeBinInt(timestamp):
-    binString = getTimeBin(timestamp)
+
+def get_time_bin_int(timestamp):
+    binString = get_time_bin(timestamp)
     if binString == _night:
         return 0
     if binString == _morning:
@@ -249,32 +268,34 @@ def getTimeBinInt(timestamp):
     if binString == _evening:
         return 3
 
-def checkTimeInterval(datetimeInput, start, end):
+
+def check_time_interval(datetimeInput, start, end):
     """
     Check whether given datetime input falls into the interval defined by datetime.time values start and end
     :return: boolean
     """
-    assert(datetimeInput)
+    assert (datetimeInput)
     # TODO: avoid this! use timestamps in the database instead or transform the timestamps to UTC in import!!
     datetimeInput = datetimeInput + datetime.timedelta(minutes=60)
-    assert(start < end)
+    assert (start < end)
     timeInput = datetime.time(
         datetimeInput.hour,
         datetimeInput.minute,
         datetimeInput.second)
     return start <= timeInput <= end
 
-def computePerformanceMetrics(groundtruth, predictions):
+
+def compute_performance_metrics(groundtruth, predictions):
     """
     Given ground truth and prediction values, compute performance measurements and statistics
     :param groundtruth: list of numerical ground truth values
     :param predictions: list of numerical prediction values
     :return: dictionary of performance metrics and statistics
     """
-    assert(len(groundtruth) == len(predictions))
+    assert (len(groundtruth) == len(predictions))
     results = dict()
     results['num_values'] = len(predictions)
-    if len(predictions) == 0: # in case there were no values
+    if len(predictions) == 0:  # in case there were no values
         results['RMSE'] = None
         results['SMAPE'] = None
         results['MAE'] = None
@@ -287,6 +308,7 @@ def computePerformanceMetrics(groundtruth, predictions):
     results['MdAE'] = median_absolute_error(groundtruth, predictions)
     return results
 
+
 def mean_absolute_percentage_error(groundtruth, predictions):
     """
     Compute symmertric mean absolute percentage error (SMAPE)
@@ -297,8 +319,9 @@ def mean_absolute_percentage_error(groundtruth, predictions):
     gt = np.array(groundtruth)
     pred = np.array(predictions)
     errors = np.abs(pred - gt)
-    averages = (np.abs(gt) + np.abs(pred))/2.0
+    averages = (np.abs(gt) + np.abs(pred)) / 2.0
     return 100.0 * np.mean(errors / averages)
+
 
 def median_absolute_error(groundtruth, predictions):
     """
@@ -312,7 +335,8 @@ def median_absolute_error(groundtruth, predictions):
     errors = np.abs(pred - gt)
     return np.median(errors)
 
-def toClfResult(test_y, predictions):
+
+def to_clf_result(test_y, predictions):
     results = dict()
     results["num_values"] = len(test_y)
     if len(test_y) == 0:
@@ -322,13 +346,14 @@ def toClfResult(test_y, predictions):
         results["f1"] = None
         return results
     results["accuracy"] = accuracy_score(test_y, predictions, normalize=True)
-    results["precision"] = precision_score(test_y, predictions,average='weighted')
+    results["precision"] = precision_score(test_y, predictions, average='weighted')
     results["recall"] = recall_score(test_y, predictions, average='weighted')
     results["f1"] = f1_score(test_y, predictions, average='weighted')
 
     return results
 
-def perClassResult(cm, i, cls):
+
+def per_class_result(cm, i, cls):
     '''
 
     :param cm: confusion matrix
@@ -337,30 +362,32 @@ def perClassResult(cm, i, cls):
     :return:
     '''
     r = dict()
-    r['tp'] = cm[i,i]
-    r['fp'] = np.sum(cm, axis=0)[i] - cm[i, i]  #The corresponding column for class_i - TP
-    r['fn'] = np.sum(cm, axis=1)[i] - cm[i, i] # The corresponding row for class_i - TP
-    r['tn'] = np.sum(cm) - r['tp'] -r['fp'] -r['fn']
+    r['tp'] = cm[i, i]
+    r['fp'] = np.sum(cm, axis=0)[i] - cm[i, i]  # The corresponding column for class_i - TP
+    r['fn'] = np.sum(cm, axis=1)[i] - cm[i, i]  # The corresponding row for class_i - TP
+    r['tn'] = np.sum(cm) - r['tp'] - r['fp'] - r['fn']
     r['className'] = cls
     r['precision'] = r['tp'] / float(r['tp'] + r['fp'])
     r['recall'] = r['tp'] / float(r['tp'] + r['fn'])
     r['f1'] = 2 * r['precision'] * r['recall'] / (r['precision'] + r['recall'])
     r['noInstances'] = np.sum(cm, axis=1)[i]
-    r['accuracy'] = (r['tp'] + r['tn'])/ float(r['tp'] + r['tn'] + r['fp'] + r['fn'])
+    r['accuracy'] = (r['tp'] + r['tn']) / float(r['tp'] + r['tn'] + r['fp'] + r['fn'])
     return r
 
 
 MMOL_TO_MG = 18.0182
 
+
 def convert_mg_to_mmol(x):
     """Convert mg/dl to mmol/l equivalent"""
-    x= format( x/MMOL_TO_MG, '.1f')
+    x = format(x / MMOL_TO_MG, '.1f')
     return float(x)
+
 
 def convert_mmol_to_mg(x):
     """Convert mmol/l to mg/dl equivalent"""
-    return int(x*MMOL_TO_MG)
+    return int(x * MMOL_TO_MG)
+
 
 def mean(numbers):
     return float(sum(numbers)) / max(len(numbers), 1)
-
