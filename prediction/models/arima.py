@@ -59,7 +59,7 @@ class ARIMA(BaseRegressor):
             timestamps=timestamps,
             groundtruth=test,
             predictions=predictions,
-            carbdata=self.carbData
+            carbdata=self.carb_data
         ))
         results['params'] = self.save_params()
 

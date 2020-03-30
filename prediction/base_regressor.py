@@ -16,9 +16,9 @@ class BaseRegressor(object):
         self.con = dbConnection
 
         self.glucose_data = list()
-        self.insulinData = list()
-        self.carbData = list()
-        self.activityData = list()
+        self.insulin_data = list()
+        self.carb_data = list()
+        self.activity_data = list()
         # load data necessary for ARIMA
         self.discretizedData = list()
 
@@ -27,8 +27,8 @@ class BaseRegressor(object):
         self.load_all_data()
 
         ###### LOAD Feature Extraction ####
-        self.Features = FeatureManager(self.glucose_data, self.insulinData, self.carbData,
-                                       self.activityData, self.patient_id)
+        self.Features = FeatureManager(self.glucose_data, self.insulin_data, self.carb_data,
+                                       self.activity_data, self.patient_id)
         # tuning option for RF
         # set it now as a common parameter
         # for all models
@@ -94,7 +94,7 @@ class BaseRegressor(object):
                     self.log.error("No insulin data was returned!")
                     return
                 for row in rows:
-                    self.insulinData.append(row)
+                    self.insulin_data.append(row)
         else:
             with self.con:
                 cur = self.con.cursor()
@@ -108,7 +108,7 @@ class BaseRegressor(object):
                     self.log.error("No insulin data was returned!")
                     return
                 for row in rows:
-                    self.insulinData.append(row)
+                    self.insulin_data.append(row)
 
     def load_carb_data(self):
         """
@@ -127,7 +127,7 @@ class BaseRegressor(object):
                 self.log.error("No carb data was returned!")
                 return
             for row in rows:
-                self.carbData.append(row)
+                self.carb_data.append(row)
 
     def load_activity_data(self):
         """
@@ -147,7 +147,7 @@ class BaseRegressor(object):
                 self.log.error("No activity data was returned!")
                 return
             for row in rows:
-                self.activityData.append(row)
+                self.activity_data.append(row)
 
     def load_discretized_data(self):
         self.log.info("Loading discretized glucose data for patient {}".format(self.patient_id))

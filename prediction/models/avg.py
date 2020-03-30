@@ -51,7 +51,7 @@ class AVG(BaseRegressor):
             timestamps=timestamps,
             groundtruth=test_values,
             predictions=predictions,
-            carbdata=self.carbData
+            carbdata=self.carb_data
         ))
         results['params'] = None
 

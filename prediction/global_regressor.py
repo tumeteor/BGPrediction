@@ -138,7 +138,7 @@ class GlobalRegressor(object):
             test_patient_data[patient_id] = test_data
             test_patient_y[patient_id] = test_y
             test_patient_glucose_data[patient_id] = test_glucoseData
-            test_patient_carb_data[patient_id] = base_clf.carbData
+            test_patient_carb_data[patient_id] = base_clf.carb_data
         return train_X, train_Y, test_X, test_Y, test_patient_data, test_patient_y, test_patient_glucose_data, test_patient_carb_data, classes
 
     def save_params(self):

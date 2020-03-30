@@ -263,7 +263,7 @@ class LSTMs(BaseRegressor):
             timestamps=timestamps,
             groundtruth=testYa,
             predictions=testYp,
-            carbdata=self.carbData
+            carbdata=self.carb_data
         ))
         results['params'] = self.save_params()
         assert (len(testYa) == len(testYp))

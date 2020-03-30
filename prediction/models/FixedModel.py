@@ -114,8 +114,8 @@ class FixedModel(BaseRegressor):
                 continue
 
 
-            prev_insulins = [item for item in self.insulinData if item['time'] <= cur_time]
-            prev_carbs = [item for item in self.carbData if item['time'] <= cur_time]
+            prev_insulins = [item for item in self.insulin_data if item['time'] <= cur_time]
+            prev_carbs = [item for item in self.carb_data if item['time'] <= cur_time]
 
             if len(prev_insulins) == 0 or len(prev_carbs) == 0: continue
 

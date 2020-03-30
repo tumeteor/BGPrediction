@@ -185,7 +185,7 @@ class RandomForest(BaseRegressor):
             timestamps=timestamps,
             groundtruth=test_y,
             predictions=predictions,
-            carbdata=self.carbData
+            carbdata=self.carb_data
         ))
         results['params'] = self.save_params()
         results['featureDesp'] = _featureDesp

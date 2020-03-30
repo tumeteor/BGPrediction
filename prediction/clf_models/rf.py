@@ -162,7 +162,7 @@ class RandomForestClassifier(BaseRegressor):
                                                                                       classes=classes, patientId=self.patient_id,
                                                                                       model=self.modelName)
         r_meal, r_meal_perclass = compute_performance_meals(test_y, predictions, timestamps=timestamps, plotConfusionMatrix=False,
-                                                            classes=classes, patientId=self.patient_id, carbdata=self.carbData, regression=False,
+                                                            classes=classes, patientId=self.patient_id, carbdata=self.carb_data, regression=False,
                                                             model=self.modelName)
 
         results['performance'].update(r_meal)

@@ -91,7 +91,7 @@ class NB(BaseRegressor):
         r_meal, r_meal_perclass = compute_performance_meals(test_y, predictions, timestamps=timestamps,
                                                             plotConfusionMatrix=True,
                                                             classes=classes, patientId=self.patient_id,
-                                                            carbdata=self.carbData, regression=False,
+                                                            carbdata=self.carb_data, regression=False,
                                                             model=self.modelName)
 
         results['performance'].update(r_meal)
