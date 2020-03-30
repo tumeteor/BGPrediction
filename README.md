@@ -1,6 +1,6 @@
 # BGPrediction
 
-This code base is the Blood Glucose Prediction for BMBF [Glycorec](https://www.pfh.de/hochschule/forschung/forschungsprojekt-glycorec.html) project.
+This code base is the Blood Glucose Prediction for the BMBF [Glycorec](https://www.pfh.de/hochschule/forschung/forschungsprojekt-glycorec.html) project.
 
 ### Prerequisites
 
@@ -12,10 +12,16 @@ APScheduler (>=3.3.0),
 mysql-connector-python (>=2.0),  
 Pandas (>=0.12.0).
 
-## Getting Started
+### Getting Started
 
 Add the project folder to the Python path:
 
 ```
 export PYTHONPATH=$PYTHONPATH:/path/to/the/project
 ```
+
+### Setup backend MySQL database 
+TBA
+
+### Supported Models
+TBA

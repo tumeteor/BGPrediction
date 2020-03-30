@@ -15,29 +15,29 @@ class FeatureManager:
     Add new features here
     """
 
-    def __init__(self, glucoseData, insulinData, carbData, activityData, patientId):
+    def __init__(self, glucose_data, insulin_data, carb_data, activity_data, patient_id):
         logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s',
                             datefmt='%d.%m.%Y %I:%M:%S %p', level=logging.INFO)
         self.log = logging.getLogger("FeatureManager")
 
         self.horizon_minutes = 60
 
-        self.glucoseData = glucoseData
-        self.insulinData = insulinData
-        self.carbData = carbData
-        self.activityData = activityData
-        self.patientId = patientId
+        self.glucose_data = glucose_data
+        self.insulin_data = insulin_data
+        self.carb_data = carb_data
+        self.activity_data = activity_data
+        self.patient_id = patient_id
 
-        self.n_samples = len(self.glucoseData)
+        self.n_samples = len(self.glucose_data)
 
         # insulin decay params
         self.gamma = {"basal": 0.5,
                       "rapid": 0.7,
                       "misch": 0.3}
 
-        self.carbRate = 0.5
+        self.carb_rate = 0.5
 
-        self.featureNames = list()
+        self.feature_names = list()
 
         '''
         assign features into groups, each feature can be assigned to a (or many) group(s)
@@ -45,10 +45,10 @@ class FeatureManager:
         '''
 
         FeatureGroup.groups = list()
-        self.contextFeatureGroup = FeatureGroup(name="Time")
+        self.context_feature_group = FeatureGroup(name="Time")
         self.carb_feature_group = FeatureGroup(name="Carb")
         self.insulin_feature_group = FeatureGroup(name="Insulin")
-        self.glucoseFeatureGroup = FeatureGroup(name="Glucose")
+        self.glucose_feature_group = FeatureGroup(name="Glucose")
         self.activity_feature_group = FeatureGroup(name="Activity")
 
         self._storedGroupIndices = False
@@ -61,20 +61,19 @@ class FeatureManager:
         """
         # TODO: rename method
         time_bin_feature = Feature("timeBin", getTimeBinInt(t))
-        self.contextFeatureGroup.add_feature(time_bin_feature)
+        self.context_feature_group.add_feature(time_bin_feature)
 
 
     def fixed_model(self, ie, bz, carb, il_case, t):
-        '''
-        predict bloodglucose using fixed model in 3.5 hours?
+        """
+        predict bloodglucose using fixed model in 3.5 hours, get predicted bz  - bzc
         :param ie: ingested insulin
         :param bz: current bloodglucose
         :param carb: carb intake
         :param il_case: insulin case 1 (basal) or 2 (prandial)
                TODO: mixed??
         :param t: timestamp
-        :return: predicted bz  - bzc
-        '''
+        """
         korrekturregel = [40,60]
         carb_increase_rate = 22 # Bz erhoehung 22mg/dl per carb
         carb_factors = {0:0,1:1.5,2:0.5,3:1.0} # carb_factor varies by period /
@@ -98,22 +97,24 @@ class FeatureManager:
                 print "predicted bg3: {} and old: {}".format(bzc,bz)
 
         fixed_model_prediction_feature = Feature("fixedModelPrediction",bzc)
-        self.contextFeatureGroup.add_feature(fixed_model_prediction_feature)
+        self.context_feature_group.add_feature(fixed_model_prediction_feature)
 
 
 
     def aggregate_history(self, prev_glucose, cur_time, next_time):
         """
-        :param cur_time, next_time:
-        :return: average of previous glucose values,
+        Get average of previous glucose values,
                  rolling average of previous glucose values
+        :param cur_time: current time bin
+        :param prev_glucose: previous glucose value
+        :param cur_time, next_time:
         """
         # previous values
         # avg of previous glucose values
         # TODO: rename method
         avg_glucose = mean([p['value'] for p in prev_glucose])
         avg_glucose_feature = Feature("avgGlucose", avg_glucose)
-        self.glucoseFeatureGroup.add_feature(avg_glucose_feature)
+        self.glucose_feature_group.add_feature(avg_glucose_feature)
         # previous glucose values (average of last hour) Note: remove since it is covered by the other method for now
         delta = datetime.timedelta(hours=1)
         prev_glucose = mean([a['value'] for a in prev_glucose if a['value'] and a['time'] >= (cur_time - delta)])
@@ -137,31 +138,31 @@ class FeatureManager:
         time_weight_avg_glucose = avg_prev / avg_prev_w
 
         time_weight_avg_glucose_feature = Feature("timeWeightAvgGlucose", time_weight_avg_glucose)
-        self.glucoseFeatureGroup.add_feature(time_weight_avg_glucose_feature)
+        self.glucose_feature_group.add_feature(time_weight_avg_glucose_feature)
 
-    def insulin_decay_concentration(self, c0, timedelta, type):
+    def insulin_decay_concentration(self, c0, timedelta, insulin_type):
         """
         assume that the drug is administered intravenously, so that the concentration of the drug
         in the bloodstream jumps almost immediately to its highest level.
         The concentration of the drug then decays exponentially.
-        :param c: concentration at t0
+        :param c0: concentration at t0
         :param timedelta: time distance at t0 + delta
-        :param type: insulin type [basal, rapid, misch]
+        :param insulin_type: insulin type [basal, rapid, misch]
         :return: concentration at t0 + delta
         """
-        ct = c0 * np.exp(-self.gamma[type] * tohour(timedelta))
+        ct = c0 * np.exp(-self.gamma[insulin_type] * tohour(timedelta))
         if ct < 0.001: ct = 0
         return ct
 
     def carb_linear_absorption(self, c0, timedelta):
         """
-        https://diyps.org/2014/05/29/determining-your-carbohydrate-absorption-rate-diyps-lessons-learned/
-        :param c0:
-        :param timedelta:
-        :return:
+        Follow https://diyps.org/2014/05/29/determining-your-carbohydrate-absorption-rate-diyps-lessons-learned/
+        :param c0: concentration at t0
+        :param timedelta: time distance at t0 + delta
+        :return: absorbed carb
         """
 
-        ct = - self.carbRate * tohour(timedelta) + c0
+        ct = - self.carb_rate * tohour(timedelta) + c0
         if ct < 0: ct = 0
 
         return ct
@@ -208,7 +209,7 @@ class FeatureManager:
             self.insulin_feature_group.add_feature(sum_decay_in_feature)
 
             # absorbed insulin: difference between decay and sum of insulin
-            # TODO: comment in when we can speficy to ignore for certain models; rf suffers from too many features
+            # TODO: comment in when we can specify to ignore for certain models; rf suffers from too many features
             #absIn = sumIl - sumDecayIn
             #self.featureGroups.get(self.Insulin).add_feature("absorbedInsulinLast_{}".format(k), absIn)
 
@@ -308,44 +309,43 @@ class FeatureManager:
     def get_feature_list():
         features = list()
 
-        for feature in Feature.allFeatureList:
+        for feature in Feature.all_feature_list:
             features.append(feature.value)
         return features
 
 
-    '''
-    Combining features here for each glucose instance
-    '''
     def build_feature_matrix(self, look_back):
         """
         Extract features from glucose, insulin, carbs, and activity data.
+        Combining features here for each glucose instance
+        :param look_back: number of looked back steps
         :return: Feature matrix with all available features
         """
-        self.log.info("Extract features for patient {}".format(self.patientId))
+        self.log.info("Extract features for patient {}".format(self.patient_id))
 
         result = list()
         # generate one instance per glucose value, starting with the second
         labels = list()
         for i in range(1, self.n_samples):
             # time of predicted value
-            next_time = self.glucoseData[i]['time']
+            next_time = self.glucose_data[i]['time']
             # current time
             cur_time = next_time - datetime.timedelta(minutes=self.horizon_minutes)
 
             # Note 05/11/17: all filtering for predictions with gap less than k hours
-            last_time = self.glucoseData[i - 1]['time']
+            last_time = self.glucose_data[i - 1]['time']
 
             delta_time = next_time - last_time
             #if delta_time.seconds > 3 * 60 * 60: continue
 
-            labels.append(self.glucoseData[i])
+            labels.append(self.glucose_data[i])
 
 
             # observed data
-            prev_glucose = [item for item in self.glucoseData[:i] if item['time'] <= cur_time]
-            prev_insulin = [item for item in self.insulinData if item['time'] <= cur_time]
-            prev_carbs = [item for item in self.carbData if item['time'] <= cur_time]
-            prev_activity = [item for item in self.activityData if item['time'] <= cur_time]
+            prev_glucose = [item for item in self.glucose_data[:i] if item['time'] <= cur_time]
+            prev_insulin = [item for item in self.insulin_data if item['time'] <= cur_time]
+            prev_carbs = [item for item in self.carb_data if item['time'] <= cur_time]
+            prev_activity = [item for item in self.activity_data if item['time'] <= cur_time]
 
             '''
             feature to group addition
@@ -396,23 +396,23 @@ class FeatureGroup:
 
 
 class Feature:
-    allFeatureList = list()
+    all_feature_list = list()
 
     def __init__(self, name, value):
         self.name = name
         self.value = value
-        if self in Feature.allFeatureList:
+        if self in Feature.all_feature_list:
             # feature objects are compared by name
             # this will remove the object with old value
-            Feature.allFeatureList.remove(self)
+            Feature.all_feature_list.remove(self)
             # this will append the object with new value
-            Feature.allFeatureList.append(self)
+            Feature.all_feature_list.append(self)
         else:
-            Feature.allFeatureList.append(self)
+            Feature.all_feature_list.append(self)
 
 
     def get_feature_idx(self):
-        return self.allFeatureList.index(self)
+        return self.all_feature_list.index(self)
 
     def modify_value(self, new_value):
         self.value = new_value
