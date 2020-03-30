@@ -20,7 +20,8 @@ class FixedModel(BaseRegressor):
         params = "split_ratio: " + str(self.split_ratio)
         return params
 
-    def fixedModel(self, ie, bz, carb, il_case, t, korrekturfaktor=10,korrekturregel=40):
+    @staticmethod
+    def fixed_model(ie, bz, carb, il_case, t, korrekturfaktor=10, korrekturregel=40):
         '''
         predict bloodglucose using fixed model in 3.5 hours?
         :param ie: ingested insulin
@@ -53,7 +54,8 @@ class FixedModel(BaseRegressor):
 
         return bzc
 
-    def checkperiod(self, next_time, cur_time):
+    @staticmethod
+    def checkperiod(next_time, cur_time):
         delta_time = next_time - cur_time
         return delta_time.seconds >= 2 * 60 * 60 and delta_time.seconds <= 4 * 60 * 60
 
@@ -64,7 +66,7 @@ class FixedModel(BaseRegressor):
         g = None
         p = None
         for korrekturfaktor in self.korrekturfaktors:
-            groundtruths, predictions = self.buildMealtimeData(korrekturregel=korrekturfaktor)
+            groundtruths, predictions = self.build_mealtime_data(korrekturregel=korrekturfaktor)
             if len(predictions) == 0:
                 print "number of predictions: {} and number of instances: {}".format(len(predictions),
                                                                                      len(self.glucose_data))
@@ -89,7 +91,7 @@ class FixedModel(BaseRegressor):
 
 
 
-    def buildMealtimeData(self, korrekturfaktor=10,korrekturregel=40):
+    def build_mealtime_data(self, korrekturfaktor=10, korrekturregel=40):
 
         n_samples = len(self.glucose_data)
 
@@ -134,8 +136,8 @@ class FixedModel(BaseRegressor):
             nBz += 1
             if cur_insulin['type'] != 'rapid': continue
 
-            predictedBz = self.fixedModel(ie=cur_insulin['value'], bz=cur_glucose, carb=cur_carb['value'],
-                                          il_case=cur_insulin['type'], t=cur_time, korrekturfaktor=korrekturfaktor, korrekturregel=korrekturregel)
+            predictedBz = self.fixed_model(ie=cur_insulin['value'], bz=cur_glucose, carb=cur_carb['value'],
+                                           il_case=cur_insulin['type'], t=cur_time, korrekturfaktor=korrekturfaktor, korrekturregel=korrekturregel)
 
             groundtruths.append(convert_mg_to_mmol(next_glucose['value']))
             predictions.append(convert_mg_to_mmol(predictedBz))

@@ -1,7 +1,7 @@
 from prediction.models.avg import AVG
 from prediction.models.lastValue import LastValue
 from prediction.models.contextAvg import ContextAVG
-from prediction.models.lstm import LSTM
+from prediction.models.lstm import LSTMs
 from prediction.models.rf import RandomForest
 from prediction.models.LinearRegression import LR
 from prediction.models.arima import ARIMA
@@ -34,8 +34,8 @@ class CLFManager:
         if model == "avg": return AVG(patientId, dbConnection)
         if model == "last": return LastValue(patientId, dbConnection)
         if model == "contextavg": return ContextAVG(patientId, dbConnection)
-        if model == "lstm": return LSTM(patientId, dbConnection, modelName="lstm")
-        if model == "rnn": return LSTM(patientId, dbConnection, modelName="rnn")
+        if model == "lstm": return LSTMs(patientId, dbConnection, modelName="lstm")
+        if model == "rnn": return LSTMs(patientId, dbConnection, modelName="rnn")
         if model == "rf": return RandomForest(patientId, dbConnection, modelName="rf")
         if model == "et": return RandomForest(patientId, dbConnection, modelName="et")
         if model == "lr": return LR(patientId, dbConnection)

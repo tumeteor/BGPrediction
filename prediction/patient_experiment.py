@@ -124,7 +124,7 @@ class PatientPredictionExperiment:
             return results
         else:
             clf = CLFManager.factory(self.patientId, model="rf")
-            return clf.batchPredict(), clf._allFeatureDesp
+            return clf.batch_predict(), clf._allFeatureDesp
 
     def run_extra_tree(self):
         self.log.info("Running prediction for patient {} using algorithm '{}'".format(
@@ -135,7 +135,7 @@ class PatientPredictionExperiment:
             return results
         else:
             clf = CLFManager.factory(self.patientId, model="et")
-            return clf.batchPredict(), clf._allFeatureDesp
+            return clf.batch_predict(), clf._allFeatureDesp
 
     def run_incremental_random_forest(self):
         self.log.info("Running prediction for patient {} using algorithm '{}'".format(

@@ -7,6 +7,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 from sklearn.linear_model import LinearRegression, Ridge
 
+
 class RandomForestTransformer(RandomForestRegressor, TransformerMixin):
 
     def transform(self, X, *_):

@@ -46,9 +46,9 @@ class RandomForest(BaseRegressor):
             data, y = self.extract_features()
         else:
             data, y, _featureDesp = self.extract_features(customizeFeatureSet=True)
-        return self.predictWithData(data,y)
+        return self.predict_with_data(data, y)
 
-    def incrementalConfidenceEval(self, data, y):
+    def incremental_confidence_eval(self, data, y):
 
         print len(data)
 
@@ -58,9 +58,7 @@ class RandomForest(BaseRegressor):
                                              min_samples_leaf=self.min_samples_leaf)
 
 
-
-
-    def trainwithNightFiltering(self, data, y):
+    def train_with_night_filtering(self, data, y):
         import pandas as pd
         import datetime
 
@@ -118,9 +116,7 @@ class RandomForest(BaseRegressor):
             print threshold_time, numpy.mean(mae), numpy.std(mae), numpy.mean(rmses[threshold_time]), numpy.std(rmses[threshold_time]), numpy.mean(actual_maes), numpy.mean(no_preds_removed[threshold_time])
 
 
-
-
-    def trainwithConfidenceFiltering(self, data, y):
+    def train_with_confidence_filtering(self, data, y):
 
         rf = self.models[self.modelName](n_estimators=self.n_estimator, criterion=self.criterion,
                                          min_samples_leaf=self.min_samples_leaf)
@@ -135,7 +131,7 @@ class RandomForest(BaseRegressor):
             y_train, y_test = y[train_index], y[test_index]
             rf.fit(X_train, y_train)
 
-            V_IJ, V_IJ_unbiased = self.confidenceCal(X_train, X_test, rf)
+            V_IJ, V_IJ_unbiased = self.confidence_cal(X_train, X_test, rf)
             predictions = rf.predict(X_test)
 
             assert (len(V_IJ_unbiased) == len(X_test))
@@ -174,7 +170,7 @@ class RandomForest(BaseRegressor):
         # df = pandas.DataFrame(vars, columns=column_labels)
         # print df.to_csv(index=False)
 
-    def incrementalTrainForStd(self, data, y):
+    def incremental_train_for_std(self, data, y):
         import pandas as pd
         import datetime
 
@@ -198,7 +194,7 @@ class RandomForest(BaseRegressor):
                 ts_train, ts_test = sub_ts[train_index], sub_ts[test_index]
                 rf.fit(X_train, y_train)
 
-                V_IJ, V_IJ_unbiased = self.confidenceCal(X_train, X_test, rf)
+                V_IJ, V_IJ_unbiased = self.confidence_cal(X_train, X_test, rf)
                 predictions = rf.predict(X_test)
                 #print "variance: {}".format(V_IJ_unbiased)
 
@@ -219,7 +215,7 @@ class RandomForest(BaseRegressor):
 
             print i, avg_mae, std, numpy.mean(rmses), numpy.std(rmses)
 
-    def incrementalTrain(self, data, y):
+    def incremental_train(self, data, y):
         import pandas as pd
         import datetime
 
@@ -242,7 +238,7 @@ class RandomForest(BaseRegressor):
                 ts_train, ts_test = sub_ts[train_index], sub_ts[test_index]
                 rf.fit(X_train, y_train)
 
-                V_IJ, V_IJ_unbiased = self.confidenceCal(X_train, X_test, rf)
+                V_IJ, V_IJ_unbiased = self.confidence_cal(X_train, X_test, rf)
                 predictions = rf.predict(X_test)
                 #print "variance: {}".format(V_IJ_unbiased)
 
@@ -277,7 +273,7 @@ class RandomForest(BaseRegressor):
 
             print i, avg_mae, std
 
-    def incrementalTrainWithTemporalOrder(self, data, y):
+    def incremental_train_with_temporal_order(self, data, y):
 
         print len(data)
 
@@ -294,7 +290,7 @@ class RandomForest(BaseRegressor):
             test_y = sub_y[i-1:]
 
             rf.fit(train_data,train_y)
-            V_IJ_unbiased = self.confidenceCal(train_data, test_data, rf)
+            V_IJ_unbiased = self.confidence_cal(train_data, test_data, rf)
             print "variance: {}".format(V_IJ_unbiased)
             predictions = rf.predict(test_data)
 
@@ -302,7 +298,7 @@ class RandomForest(BaseRegressor):
 
             print i, mae
 
-    def incrementalLookback(self, data, y):
+    def incremental_lookback(self, data, y):
 
         test_data = data[len(data)-4:]
         test_y = y[len(data)-4:]
@@ -327,44 +323,26 @@ class RandomForest(BaseRegressor):
 
             print i, mae
 
-    def confidenceCal(self, train_data, test_data,rf):
+    def confidence_cal(self, train_data, test_data, rf):
         import forestci as fci
         # calculate inbag and unbiased variance
         inbag = fci.calc_inbag(train_data.shape[0], rf)
         V_IJ, V_IJ_unbiased = fci.random_forest_error(rf, train_data, test_data)
 
-
-        # print "inbag: {}".format(inbag)
-        # print "V_IJ_unbiased: {}".format(V_IJ_unbiased)
-        # # Plot error bars for predicted MPG using unbiased variance
-        # (_, caps, _) = plt.errorbar(predictions, test_y, yerr=np.sqrt(V_IJ_unbiased), fmt='o', markersize=4, capsize=10, mfc='red',
-        #  mec='green')
-        # for cap in caps:
-        #     cap.set_markeredgewidth(1)
-        # plt.title('Error bars for Patient: ' + str(patientID))
-        #
-        # plt.xlabel('Actual BG')
-        # plt.ylabel('Predicted BG')
-        # plt.savefig("prediction/tmp/confidence_intervals_patient{}.png".format(self.patient_id))
-        # plt.close()
-
         return V_IJ, V_IJ_unbiased
 
 
-    def predictWithData(self, data, y, _featureDesp="all"):
+    def predict_with_data(self, data, y, _featureDesp="all"):
 
         assert (len(data) == len(y))
 
         if self.patient_id <= 11: return
 
         # confident intervals with small data
-        self.trainwithNightFiltering(data, y)
+        self.train_with_night_filtering(data, y)
 
 
         print "Results for Patient {}".format(self.patient_id)
-
-
-        # self.confidence_cal(train_data, test_data, test_y, predictions, rf, self.patient_id)
 
 
 

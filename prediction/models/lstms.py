@@ -12,7 +12,7 @@ from util.measures import compute_performance_meals
 from util.measures import getTimeBinInt
 from prediction.base_regressor import BaseRegressor
 import math
-class LSTM(BaseRegressor):
+class LSTMs(BaseRegressor):
 
     ### Model ####
     models = {'lstm': LSTM, 'rnn': SimpleRNN}
@@ -43,7 +43,7 @@ class LSTM(BaseRegressor):
     numpy.random.seed(7)
 
     def __init__(self, patientId, dbConnection,modelName):
-        super(LSTM, self).__init__(patientId, dbConnection)
+        super(LSTMs, self).__init__(patientId, dbConnection)
         self.modelName = modelName
 
         # indices of not missing values
@@ -78,15 +78,15 @@ class LSTM(BaseRegressor):
         return dataX, dataY
 
 
-
-    def createPeriods(self,df):
+    @staticmethod
+    def create_periods(df):
         times = []
         for idx, row in df.iterrows():
             times.append(getTimeBinInt(idx))
         return times
 
 
-    def getTestValues(self,testValues,trainSize,testSize):
+    def get_test_values(self, testValues, trainSize, testSize):
         print "testValue: {}, trainSize: {}, testSize: {}".format(len(testValues), trainSize, testSize)
         """
         Transform indices of original ground truth glucose values and get the
@@ -113,7 +113,7 @@ class LSTM(BaseRegressor):
     # LSTM shows a good performance on patients with denser measurements e.g., 13. Hence,
     # TODO: integrate with new features
 
-    def loadTimeSeries(self, con, patientId):
+    def load_time_series(self, con, patientId):
         print("Loading time series  data for patient {}".format(patientId))
         df = None
         with con:
@@ -127,7 +127,7 @@ class LSTM(BaseRegressor):
         df = df.set_index('date')
         # IMPORTANT: sort by date
         df = df.sort_index()
-        periods = self.createPeriods(df)
+        periods = self.create_periods(df)
         if self.addTimeofDay: df['period'] = periods
         # select the time only from 2017-03-01
         # where we have stable measurement data
@@ -156,11 +156,7 @@ class LSTM(BaseRegressor):
 
         return self.create_dataset(df.values, self.look_back)
 
-    def loadContinuousData(self):
-        '''
-
-        :return:
-        '''
+    def load_continuous_data(self):
         features, y = self.extract_features()
         y = y[:,None]
         print y.shape
@@ -172,11 +168,12 @@ class LSTM(BaseRegressor):
         return self.create_dataset(concatData, self.look_back)
 
 
-
-    # load in data and model_name, whether LSTM or RNN
-    # return gt-values and predictions
     def predict(self):
-        X, Y = self.loadTimeSeries(self.con, self.patient_id) if self.discretized else self.loadContinuousData()
+        """
+        load in data and model_name, whether LSTM or RNN
+        :return: gt-values and predictions
+        """
+        X, Y = self.load_time_series(self.con, self.patient_id) if self.discretized else self.load_continuous_data()
         print "modelname %s" %self.modelName
         # TODO: fix split when not interpolating
         train_size = int(len(X) * self.split_ratio)
@@ -217,7 +214,7 @@ class LSTM(BaseRegressor):
         testX = numpy.reshape(testX, (test_nsamples, test_nx, test_ny))
 
         #actual values
-        testYa = self.getTestValues(testY, train_size, test_size)
+        testYa = self.get_test_values(testY, train_size, test_size)
 
         # create and fit the LSTM network
         model = Sequential()
@@ -236,7 +233,7 @@ class LSTM(BaseRegressor):
 
         print("#Test data points (w/ padding): {}; #instances: {}; # training instances: {};".format(len(testY), len(X), len(trainX)))
         # trace back predictions at actual values
-        testYp = self.getTestValues(testPredict, train_size, test_size)
+        testYp = self.get_test_values(testPredict, train_size, test_size)
 
 
         testYp = yScaler.inverse_transform(testYp)

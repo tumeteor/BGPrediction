@@ -39,7 +39,7 @@ class ContextAVG(BaseRegressor):
             next_time = test_data[i]['time']
             # observed data
             prev_glucose = [item for item in self.glucose_data[:train_size - 1 + i]]
-            predictions.append(self.getTimeWeightedAverage(prev_glucose, next_time))
+            predictions.append(self.get_time_weighted_average(prev_glucose, next_time))
         assert(len(predictions) == test_size)
 
         # return ground truth (test set) and predictions (as a dict)
@@ -63,7 +63,7 @@ class ContextAVG(BaseRegressor):
         results['params'] = None
         return results
 
-    def getTimeWeightedAverage(self, prev_glucose, next_time):
+    def get_time_weighted_average(self, prev_glucose, next_time):
         """
         :param prev_glucose, next_time:
         :return: average of previous glucose values,

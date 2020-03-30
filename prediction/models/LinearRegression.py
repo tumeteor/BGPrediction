@@ -2,6 +2,8 @@ from prediction.base_regressor import BaseRegressor
 from util.measures import compute_performance_time_binned
 from util.measures import compute_performance_meals
 from sklearn import linear_model
+
+
 class LR(BaseRegressor):
 
     def __init__(self, patientId, dbConnection):
@@ -10,7 +12,7 @@ class LR(BaseRegressor):
     def save_params(self):
         return self.save_base_params();
 
-    def batchPredict(self):
+    def batch_predict(self):
         '''
         batch experiment for different feature subsets
         :return:
@@ -22,7 +24,7 @@ class LR(BaseRegressor):
             data = value[0]
             featureDesp = value[1]
             self.log.info("Feature Desp: {}".format(featureDesp))
-            results = self.predictWithData(data,y,featureDesp)
+            results = self.predictWithData(data, y, featureDesp)
             self._allFeatureDesp.append(featureDesp)
             batch_results.append(results)
         return batch_results
@@ -33,14 +35,13 @@ class LR(BaseRegressor):
             data, y = self.extract_features()
         else:
             data, y, _featureDesp = self.extract_features(customizeFeatureSet=True)
-        return self.predictWithData(data,y)
+        return self.predictWithData(data, y)
 
+    @staticmethod
+    def sub_data(data, y):
 
-    def subData(self, data, y):
-
-        newSize = len(data) * 4/4
+        newSize = len(data) * 4 / 4
         return data[-newSize:], y[-newSize:],
-
 
     def predictWithData(self, data, y, _featureDesp="all"):
         labels = y
@@ -54,14 +55,12 @@ class LR(BaseRegressor):
         # track test instances in original data for access to metadata
         test_glucoseData = self.glucose_data[train_size:]
 
-
-        #assert (len(test_glucoseData) == test_size)
+        # assert (len(test_glucoseData) == test_size)
         # fix train_size, as we ignored the first value
         train_size -= 1
         train_data = data[0:train_size]
 
         test_glucoseData = labels[train_size:]
-
 
         train_y = y[0:train_size]
         test_data = data[train_size:]
@@ -72,8 +71,6 @@ class LR(BaseRegressor):
         lr.fit(train_data, train_y)
 
         predictions = lr.predict(test_data)
-
-
 
         if len(test_data) == 0:
             return
@@ -101,4 +98,3 @@ class LR(BaseRegressor):
 
         self.plot_learned_model(results['predictions'], results['groundtruth'], results['times'])
         return results
-
