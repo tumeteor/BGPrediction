@@ -1,12 +1,14 @@
 from prediction.base_regressor import BaseRegressor
 from sklearn import ensemble
 from sklearn.model_selection import GridSearchCV
-from util.measures import computePerformanceTimeBinned, computePerformanceMeals, save_confusion_matrix
+from util.measures import compute_performance_time_binned, compute_performance_meals, save_confusion_matrix
 from sklearn.metrics import confusion_matrix, precision_recall_fscore_support, accuracy_score
 import numpy as np
 from imblearn.over_sampling import SMOTE
 from collections import Counter
 from Constant import Constant
+
+
 class RandomForestClassifier(BaseRegressor):
 
     best_params = None
@@ -40,21 +42,22 @@ class RandomForestClassifier(BaseRegressor):
             self.min_samples_leaf = 4 # default parameter for Ranfom Forest
             self.n_estimator = 1000
 
-    def saveParams(self):
-        baseParams = self.saveBaseParams();
+    def save_params(self):
+        base_params = self.save_base_params();
         params = ";".join(("n_estimator: " + str(self.n_estimator), "criterion: " + str(self.criterion), "min_samples_leaf: " + str(self.min_samples_leaf)))
-        if self.tune: params = ";".join((baseParams, params, str(self.param_grid), "Best params: " + str(self.best_params)))
+        if self.tune: params = ";".join((base_params, params, str(self.param_grid), "Best params: " + str(self.best_params)))
         return params
 
     def predict(self):
         if not self._customizeFeatureSet:
             # generate features
-            data, y = self.extractFeatures()
+            data, y = self.extract_features()
         else:
-            data, y, _featureDesp = self.extractFeatures(customizeFeatureSet=True)
-        return self.predictWithData(data,y)
+            data, y, _featureDesp = self.extract_features(customizeFeatureSet=True)
+        return self.predict_with_data(data, y)
 
-    def confidenceCal(self, train_data, train_y, test_data, test_y, predictions, rf, patientID):
+    @staticmethod
+    def confidence_cal(train_data, train_y, test_data, test_y, predictions, rf, patientID):
         import forestci as fci
         from matplotlib import pyplot as plt
         import numpy as np
@@ -79,7 +82,7 @@ class RandomForestClassifier(BaseRegressor):
         plt.show()
 
 
-    def predictWithData(self, data, Y, _featureDesp="all"):
+    def predict_with_data(self, data, Y, _feature_desp="all"):
         # labeling
         sorted_Y = sorted(Y)  # sort ascending
         thresh1 = int(len(sorted_Y) * self.threshold1) - 1
@@ -103,19 +106,19 @@ class RandomForestClassifier(BaseRegressor):
 
         assert (len(data) == len(cat_Y))
         # split data
-        num_groundtruth = len(self.glucoseData)
+        num_groundtruth = len(self.glucose_data)
         train_size = int(num_groundtruth * self.split_ratio)
         test_size = num_groundtruth - train_size
         # track test instances in original data for access to metadata
-        test_glucoseData = self.glucoseData[train_size:]
-        assert (len(test_glucoseData) == test_size)
+        test_glucose_data = self.glucose_data[train_size:]
+        assert (len(test_glucose_data) == test_size)
         # fix train_size, as we ignored the first value
         train_size -= 1
         train_data = data[0:train_size]
         train_y = cat_Y[0:train_size]
         test_data = data[train_size:]
         test_y = cat_Y[train_size:]
-        assert (len(test_y) == len(test_glucoseData))
+        assert (len(test_y) == len(test_glucose_data))
         assert (len(train_y) + len(test_y) + 1 == num_groundtruth)
 
         rf = None
@@ -124,7 +127,7 @@ class RandomForestClassifier(BaseRegressor):
             param_grid = self.param_grid
             rf = GridSearchCV(model, param_grid, n_jobs=-1, cv=2)
             self.best_params = rf.best_estimator_;
-            self.log.info("Best parameters for patient %s %s") % self.patientId % self.best_params
+            self.log.info("Best parameters for patient %s %s") % self.patient_id % self.best_params
         else:
             rf = self.models[self.modelName](n_estimators=self.n_estimator, criterion=self.criterion,
                                              min_samples_leaf=self.min_samples_leaf, class_weight="balanced")
@@ -149,24 +152,24 @@ class RandomForestClassifier(BaseRegressor):
         print "accuracy: {}".format(accuracy_score(test_y, predictions, normalize=True))
         print precision_recall_fscore_support(test_y,predictions)
 
-        timestamps = [item['time'] for item in test_glucoseData]
+        timestamps = [item['time'] for item in test_glucose_data]
         results = dict()
-        results['groundtruth'] = [item['value'] for item in test_glucoseData]
+        results['groundtruth'] = [item['value'] for item in test_glucose_data]
         results['times'] = timestamps
-        results['indices'] = [int(item['index']) for item in test_glucoseData]
-        results['performance'], results['perClass'] = computePerformanceTimeBinned(test_y, predictions, timestamps=timestamps,
-                                                              regression=False, plotConfusionMatrix=False,
-                                                              classes=classes, patientId=self.patientId,
-                                                              model=self.modelName)
-        r_meal, r_meal_perclass = computePerformanceMeals(test_y, predictions, timestamps=timestamps, plotConfusionMatrix=False,
-                                                              classes=classes, patientId=self.patientId, carbdata=self.carbData,regression=False,
-                                                              model=self.modelName)
+        results['indices'] = [int(item['index']) for item in test_glucose_data]
+        results['performance'], results['perClass'] = compute_performance_time_binned(test_y, predictions, timestamps=timestamps,
+                                                                                      regression=False, plotConfusionMatrix=False,
+                                                                                      classes=classes, patientId=self.patient_id,
+                                                                                      model=self.modelName)
+        r_meal, r_meal_perclass = compute_performance_meals(test_y, predictions, timestamps=timestamps, plotConfusionMatrix=False,
+                                                            classes=classes, patientId=self.patient_id, carbdata=self.carbData, regression=False,
+                                                            model=self.modelName)
 
         results['performance'].update(r_meal)
         results['perClass'].update(r_meal_perclass)
 
 
-        results['params'] = self.saveParams()
+        results['params'] = self.save_params()
 
         # Compute confusion matrix
         cnf_matrix = confusion_matrix(test_y, predictions)
@@ -177,7 +180,7 @@ class RandomForestClassifier(BaseRegressor):
         results["report"] += ";confusion matrix: " + str(cnf_matrix)
 
         #Plot non-normalized confusion matrix
-        save_confusion_matrix(cnf_matrix,classes=classes,patientId=self.patientId,desc="all",model=self.modelName)
+        save_confusion_matrix(cnf_matrix, classes=classes, patientId=self.patient_id, desc="all", model=self.modelName)
 
 
         return results

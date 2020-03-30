@@ -7,8 +7,8 @@ from sklearn.preprocessing import MinMaxScaler
 import logging
 import pandas as pd
 import numpy
-from util.measures import computePerformanceTimeBinned
-from util.measures import computePerformanceMeals
+from util.measures import compute_performance_time_binned
+from util.measures import compute_performance_meals
 from util.measures import getTimeBinInt
 from prediction.base_regressor import BaseRegressor
 import math
@@ -51,8 +51,8 @@ class LSTM(BaseRegressor):
 
 
 
-    def saveParams(self):
-        baseParams = self.saveBaseParams();
+    def save_params(self):
+        baseParams = self.save_base_params();
         seq = (baseParams, "discretized: " + str(self.discretized), "interpolated: " + str(self.interpolated), "epochs: " + str(self.epochs), "addTimeofDay: " + str(self.addTimeofDay), "no_features: " + str(self.no_features),
                "num_units: " + str(self.num_units), "debug: " + str(self.DEBUG))
         params = ";".join(seq)
@@ -161,7 +161,7 @@ class LSTM(BaseRegressor):
 
         :return:
         '''
-        features, y = self.extractFeatures()
+        features, y = self.extract_features()
         y = y[:,None]
         print y.shape
         print features.shape
@@ -173,10 +173,10 @@ class LSTM(BaseRegressor):
 
 
 
-    # load in data and modelName, whether LSTM or RNN
+    # load in data and model_name, whether LSTM or RNN
     # return gt-values and predictions
     def predict(self):
-        X, Y = self.loadTimeSeries(self.con, self.patientId) if self.discretized else self.loadContinuousData()
+        X, Y = self.loadTimeSeries(self.con, self.patient_id) if self.discretized else self.loadContinuousData()
         print "modelname %s" %self.modelName
         # TODO: fix split when not interpolating
         train_size = int(len(X) * self.split_ratio)
@@ -245,7 +245,7 @@ class LSTM(BaseRegressor):
         print("predicted values: {}".format(testYp))
 
         # load timestamps
-        ts_df = self.loadTimestamps(self.con, self.patientId)
+        ts_df = self.load_timestamps(self.con, self.patient_id)
         # if self.interpolated:
         #     # skip last timestamp
         #     ts_df = ts_df[:-1]
@@ -258,17 +258,17 @@ class LSTM(BaseRegressor):
         results['times'] = timestamps
         results['indices'] = test_ts['pos'].values
         results['predictions'] = testYp
-        results['performance'] = computePerformanceTimeBinned(
+        results['performance'] = compute_performance_time_binned(
             timestamps=timestamps,
             groundtruth=testYa,
             predictions=testYp)
-        results['performance'].update(computePerformanceMeals(
+        results['performance'].update(compute_performance_meals(
             timestamps=timestamps,
             groundtruth=testYa,
             predictions=testYp,
             carbdata=self.carbData
         ))
-        results['params'] = self.saveParams()
+        results['params'] = self.save_params()
         assert (len(testYa) == len(testYp))
         assert(len(timestamps) == len(testYp))
         return results

@@ -33,8 +33,8 @@ class RandomForest(BaseRegressor):
             self.min_samples_leaf = 4 # default parameter for Ranfom Forest
             self.n_estimator = 500
 
-    def saveParams(self):
-        baseParams = self.saveBaseParams();
+    def save_params(self):
+        baseParams = self.save_base_params();
         params = ";".join(("n_estimator: " + str(self.n_estimator), "criterion: " + str(self.criterion), "min_samples_leaf: " + str(self.min_samples_leaf)))
         if self.tune: params = ";".join((baseParams, params, str(self.param_grid), "Best params: " + str(self.best_params)))
         return params
@@ -43,9 +43,9 @@ class RandomForest(BaseRegressor):
     def predict(self):
         if not self._customizeFeatureSet:
             # generate features
-            data, y = self.extractFeatures()
+            data, y = self.extract_features()
         else:
-            data, y, _featureDesp = self.extractFeatures(customizeFeatureSet=True)
+            data, y, _featureDesp = self.extract_features(customizeFeatureSet=True)
         return self.predictWithData(data,y)
 
     def incrementalConfidenceEval(self, data, y):
@@ -64,7 +64,7 @@ class RandomForest(BaseRegressor):
         import pandas as pd
         import datetime
 
-        ts = numpy.array([item['time'] for item in self.glucoseData[1:]])
+        ts = numpy.array([item['time'] for item in self.glucose_data[1:]])
         assert (len(ts) == len(data))
 
         rf = self.models[self.modelName](n_estimators=self.n_estimator, criterion=self.criterion,
@@ -178,7 +178,7 @@ class RandomForest(BaseRegressor):
         import pandas as pd
         import datetime
 
-        timestamps = [item['time'] for item in self.glucoseData[1:]]
+        timestamps = [item['time'] for item in self.glucose_data[1:]]
         assert (len(timestamps) == len(data))
 
         for i in range (10, len(data)):
@@ -223,7 +223,7 @@ class RandomForest(BaseRegressor):
         import pandas as pd
         import datetime
 
-        timestamps = [item['time'] for item in self.glucoseData[1:]]
+        timestamps = [item['time'] for item in self.glucose_data[1:]]
         assert (len(timestamps) == len(data))
 
         for i in range (10, len(data)):
@@ -323,7 +323,7 @@ class RandomForest(BaseRegressor):
 
             mae = median_absolute_error(test_y, predictions)
 
-            #V_IJ_unbiased = self.confidenceCal(train_data,test_data,rf)
+            #V_IJ_unbiased = self.confidence_cal(train_data,test_data,rf)
 
             print i, mae
 
@@ -345,7 +345,7 @@ class RandomForest(BaseRegressor):
         #
         # plt.xlabel('Actual BG')
         # plt.ylabel('Predicted BG')
-        # plt.savefig("prediction/tmp/confidence_intervals_patient{}.png".format(self.patientId))
+        # plt.savefig("prediction/tmp/confidence_intervals_patient{}.png".format(self.patient_id))
         # plt.close()
 
         return V_IJ, V_IJ_unbiased
@@ -355,16 +355,16 @@ class RandomForest(BaseRegressor):
 
         assert (len(data) == len(y))
 
-        if self.patientId <= 11: return
+        if self.patient_id <= 11: return
 
         # confident intervals with small data
         self.trainwithNightFiltering(data, y)
 
 
-        print "Results for Patient {}".format(self.patientId)
+        print "Results for Patient {}".format(self.patient_id)
 
 
-        # self.confidenceCal(train_data, test_data, test_y, predictions, rf, self.patientId)
+        # self.confidence_cal(train_data, test_data, test_y, predictions, rf, self.patient_id)
 
 
 

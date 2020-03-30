@@ -1,6 +1,6 @@
 from prediction.base_regressor import BaseRegressor
-from util.measures import computePerformanceTimeBinned
-from util.measures import computePerformanceMeals
+from util.measures import compute_performance_time_binned
+from util.measures import compute_performance_meals
 import datetime
 from util.TimeUtil import tohour
 import numpy as np
@@ -16,7 +16,7 @@ class ContextAVG(BaseRegressor):
         # TODO: add global option and possibly use feature manager?
         self.horizon_minutes = 60
 
-    def saveParams(self):
+    def save_params(self):
         return
 
     def predict(self):
@@ -24,12 +24,12 @@ class ContextAVG(BaseRegressor):
         Runs ContextAVG value prediction.
         :return:
         """
-        assert(self.glucoseData)
+        assert(self.glucose_data)
         # split the data
-        num_groundtruth = len(self.glucoseData)
+        num_groundtruth = len(self.glucose_data)
         train_size = int(num_groundtruth * self.split_ratio)
         test_size = num_groundtruth - train_size
-        test_data = self.glucoseData[train_size:]
+        test_data = self.glucose_data[train_size:]
         assert(len(test_data) == test_size)
 
         # create prediction list using time weighted avg of previous values
@@ -38,7 +38,7 @@ class ContextAVG(BaseRegressor):
             # time of prediction
             next_time = test_data[i]['time']
             # observed data
-            prev_glucose = [item for item in self.glucoseData[:train_size - 1 + i]]
+            prev_glucose = [item for item in self.glucose_data[:train_size - 1 + i]]
             predictions.append(self.getTimeWeightedAverage(prev_glucose, next_time))
         assert(len(predictions) == test_size)
 
@@ -50,11 +50,11 @@ class ContextAVG(BaseRegressor):
         results['times'] = timestamps
         results['indices'] = [item['index'] for item in test_data]
         results['predictions'] = predictions
-        results['performance'] = computePerformanceTimeBinned(
+        results['performance'] = compute_performance_time_binned(
             timestamps=timestamps,
             groundtruth=test_values,
             predictions=predictions)
-        results['performance'].update(computePerformanceMeals(
+        results['performance'].update(compute_performance_meals(
             timestamps=timestamps,
             groundtruth=test_values,
             predictions=predictions,

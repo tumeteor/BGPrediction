@@ -1,11 +1,13 @@
 from sklearn import ensemble
 from sklearn.model_selection import GridSearchCV
-from util.measures import computePerformanceTimeBinned, computePerformanceMeals, save_confusion_matrix
+from util.measures import compute_performance_time_binned, compute_performance_meals, save_confusion_matrix
 from sklearn.metrics import confusion_matrix, precision_recall_fscore_support, accuracy_score
 import numpy as np
 from imblearn.over_sampling import SMOTE
 from collections import Counter
 from prediction.global_regressor import GlobalRegressor
+
+
 class GlobalRandomForest(GlobalRegressor):
     best_params = None
 
@@ -26,14 +28,14 @@ class GlobalRandomForest(GlobalRegressor):
     def __init__(self, modelName):
         super(GlobalRandomForest, self).__init__()
         self.train_X, self.train_Y, self.test_X, self.test_Y, self.test_patient_data, self.test_patient_y, \
-        self.test_patient_glucoseData, self.test_patient_carbData, self.classes = self.loadAllData()
-        self.modelName = modelName
-        if self.modelName == "rf":
+        self.test_patient_glucoseData, self.test_patient_carbData, self.classes = self.load_all_data()
+        self.model_name = modelName
+        if self.model_name == "rf":
             self.min_samples_leaf = 4  # default parameter for Ranfom Forest
             self.n_estimator = 1000
 
-    def saveParams(self):
-        baseParams = self.saveBaseParams();
+    def save_params(self):
+        baseParams = self.save_base_params()
         params = ";".join(("n_estimator: " + str(self.n_estimator), "criterion: " + str(self.criterion),
                            "min_samples_leaf: " + str(self.min_samples_leaf)))
         if self.tune: params = ";".join(
@@ -41,7 +43,7 @@ class GlobalRandomForest(GlobalRegressor):
         return params
 
 
-    def predict(self, _featureDesp="all"):
+    def predict(self, _feature_desp="all"):
         rf = None
         if self.tune:
             model = ensemble.RandomForestClassifier(random_state=30, class_weight="balanced")
@@ -50,8 +52,8 @@ class GlobalRandomForest(GlobalRegressor):
             self.best_params = rf.best_estimator_;
             self.log.info("Best parameters: %s")  % self.best_params
         else:
-            rf = self.models[self.modelName](n_estimators=self.n_estimator, criterion=self.criterion,
-                                             min_samples_leaf=self.min_samples_leaf, class_weight="balanced")
+            rf = self.models[self.model_name](n_estimators=self.n_estimator, criterion=self.criterion,
+                                              min_samples_leaf=self.min_samples_leaf, class_weight="balanced")
 
         '''
         Sampling training set
@@ -69,16 +71,16 @@ class GlobalRandomForest(GlobalRegressor):
         rf.fit(self.train_X, self.train_Y)
 
         patient_results = dict()
-        for patientID in self.test_patient_data.keys():
+        for patient_id in self.test_patient_data.keys():
             # conduct prediction to patient level
-            predictions = rf.predict(self.test_patient_data[patientID])
-            results = self.toResults(test_glucoseData=self.test_patient_glucoseData[patientID], carbData= self.test_patient_carbData[patientID], test_y=self.test_patient_y[patientID],
-                                     predictions=predictions,classes=self.classes, patientId=patientID)
-            patient_results[patientID] = results
+            predictions = rf.predict(self.test_patient_data[patient_id])
+            results = self.to_results(test_glucoseData=self.test_patient_glucoseData[patient_id], carbData= self.test_patient_carbData[patient_id], test_y=self.test_patient_y[patient_id],
+                                      predictions=predictions, classes=self.classes, patientId=patient_id)
+            patient_results[patient_id] = results
 
         return patient_results
 
         #Plot non-normalized confusion matrix
-        #save_confusion_matrix(cnf_matrix,classes=classes,patientId=self.patientId,desc="all",model=self.modelName)
+        #save_confusion_matrix(cnf_matrix,classes=classes,patient_id=self.patient_id,desc="all",model=self.model_name)
 
 

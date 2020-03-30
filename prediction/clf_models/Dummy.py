@@ -1,5 +1,5 @@
 from prediction.base_regressor import BaseRegressor
-from util.measures import computePerformanceTimeBinned, computePerformanceMeals
+from util.measures import compute_performance_time_binned, compute_performance_meals
 from sklearn.metrics import confusion_matrix, precision_recall_fscore_support,accuracy_score
 import numpy as np
 from util.measures import save_confusion_matrix
@@ -8,7 +8,7 @@ from Constant import Constant
 
 class Dummy(BaseRegressor):
 
-    modelName = "dummy"
+    model_name = "dummy"
 
     # classifcation split ratio
     threshold1 = 0.25
@@ -23,22 +23,22 @@ class Dummy(BaseRegressor):
 
     hard_threshold = False
 
-    def __init__(self, patientId, dbConnection):
-        super(Dummy, self).__init__(patientId, dbConnection)
+    def __init__(self, patient_id, db_connection):
+        super(Dummy, self).__init__(patient_id, db_connection)
 
 
-    def saveParams(self):
-        baseParams = self.saveBaseParams();
+    def save_params(self):
+        base_params = self.save_base_params()
         params = ";".join(("strategy: " + str(self.strategy),"random_state: " + str(self.random_state)))
         return params
 
     def predict(self):
         # generate features
-        data, y = self.extractFeatures()
-        return self.predictWithData(data,y)
+        data, y = self.extract_features()
+        return self.predict_with_data(data, y)
 
 
-    def predictWithData(self, data, Y, _featureDesp="all"):
+    def predict_with_data(self, data, Y, _feature_desp="all"):
         # labeling
         sorted_Y = sorted(Y)  # sort ascending
         thresh1 = int(len(sorted_Y) * self.threshold1) - 1
@@ -61,19 +61,19 @@ class Dummy(BaseRegressor):
 
         assert (len(data) == len(cat_Y))
         # split data
-        num_groundtruth = len(self.glucoseData)
+        num_groundtruth = len(self.glucose_data)
         train_size = int(num_groundtruth * self.split_ratio)
         test_size = num_groundtruth - train_size
         # track test instances in original data for access to metadata
-        test_glucoseData = self.glucoseData[train_size:]
-        assert (len(test_glucoseData) == test_size)
+        test_glucose_data = self.glucose_data[train_size:]
+        assert (len(test_glucose_data) == test_size)
         # fix train_size, as we ignored the first value
         train_size -= 1
         train_data = data[0:train_size]
         train_y = cat_Y[0:train_size]
         test_data = data[train_size:]
         test_y = cat_Y[train_size:]
-        assert (len(test_y) == len(test_glucoseData))
+        assert (len(test_y) == len(test_glucose_data))
         assert (len(train_y) + len(test_y) + 1 == num_groundtruth)
 
         clf = DummyClassifier(strategy=self.strategy, random_state=self.random_state)
@@ -85,25 +85,25 @@ class Dummy(BaseRegressor):
         print "accuracy: {}".format(accuracy_score(test_y, predictions, normalize=True))
         print precision_recall_fscore_support(test_y, predictions)
 
-        timestamps = [item['time'] for item in test_glucoseData]
+        timestamps = [item['time'] for item in test_glucose_data]
         results = dict()
-        results['performance'], results['perClass'] = computePerformanceTimeBinned(test_y, predictions,
-                                                                                   timestamps=timestamps,
-                                                                                   regression=False,
-                                                                                   plotConfusionMatrix=True,
-                                                                                   classes=classes,
-                                                                                   patientId=self.patientId,
-                                                                                   model=self.modelName)
-        r_meal, r_meal_perclass = computePerformanceMeals(test_y, predictions, timestamps=timestamps,
-                                                          plotConfusionMatrix=True,
-                                                          classes=classes, patientId=self.patientId,
-                                                          carbdata=self.carbData, regression=False,
-                                                          model=self.modelName)
+        results['performance'], results['perClass'] = compute_performance_time_binned(test_y, predictions,
+                                                                                      timestamps=timestamps,
+                                                                                      regression=False,
+                                                                                      plotConfusionMatrix=True,
+                                                                                      classes=classes,
+                                                                                      patientId=self.patient_id,
+                                                                                      model=self.model_name)
+        r_meal, r_meal_perclass = compute_performance_meals(test_y, predictions, timestamps=timestamps,
+                                                            plotConfusionMatrix=True,
+                                                            classes=classes, patientId=self.patient_id,
+                                                            carbdata=self.carbData, regression=False,
+                                                            model=self.model_name)
 
         results['performance'].update(r_meal)
         results['perClass'].update(r_meal_perclass)
 
-        results['params'] = self.saveParams()
+        results['params'] = self.save_params()
 
         # Compute confusion matrix
         cnf_matrix = confusion_matrix(test_y, predictions)
@@ -114,7 +114,7 @@ class Dummy(BaseRegressor):
         results["report"] += ";confusion matrix: " + str(cnf_matrix)
 
         # Plot non-normalized confusion matrix
-        save_confusion_matrix(cnf_matrix, classes=classes, patientId=self.patientId, desc="all", model=self.modelName)
+        save_confusion_matrix(cnf_matrix, classes=classes, patientId=self.patient_id, desc="all", model=self.model_name)
 
         return results
 

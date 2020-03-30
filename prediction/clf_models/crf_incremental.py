@@ -39,8 +39,8 @@ class RFClassifier(BaseRegressor):
             self.min_samples_leaf = 4 # default parameter for Random Forest
             self.n_estimator = 1000
 
-    def saveParams(self):
-        baseParams = self.saveBaseParams();
+    def save_params(self):
+        baseParams = self.save_base_params();
         params = ";".join(("n_estimator: " + str(self.n_estimator), "criterion: " + str(self.criterion), "min_samples_leaf: " + str(self.min_samples_leaf)))
         if self.tune: params = ";".join((baseParams, params, str(self.param_grid), "Best params: " + str(self.best_params)))
         return params
@@ -48,12 +48,13 @@ class RFClassifier(BaseRegressor):
     def predict(self):
         if not self._customizeFeatureSet:
             # generate features
-            data, y = self.extractFeatures()
+            data, y = self.extract_features()
         else:
-            data, y, _featureDesp = self.extractFeatures(customizeFeatureSet=True)
+            data, y, _featureDesp = self.extract_features(customizeFeatureSet=True)
         return self.predictWithData(data,y)
 
-    def confidenceCal(self, train_data, test_data, rf):
+    @staticmethod
+    def confidence_cal(train_data, test_data, rf):
         import forestci as fci
         from matplotlib import pyplot as plt
         import numpy as np
@@ -66,11 +67,8 @@ class RFClassifier(BaseRegressor):
 
 
 
-    def incrementalTrain(self, data, y):
-        import pandas as pd
-        import datetime
-
-        timestamps = [item['time'] for item in self.glucoseData[1:]]
+    def incremental_train(self, data, y):
+        timestamps = [item['time'] for item in self.glucose_data[1:]]
         assert (len(timestamps) == len(data))
 
 
@@ -98,7 +96,7 @@ class RFClassifier(BaseRegressor):
                 predictions_filtered = []
 
                 rf.fit(X_train, y_train)
-                V_IJ, V_IJ_unbiased = self.confidenceCal(X_train, X_test, rf)
+                V_IJ, V_IJ_unbiased = self.confidence_cal(X_train, X_test, rf)
                 predictions = rf.predict_proba(X_test)
                 # print "variance: {}".format(V_IJ_unbiased)
 
@@ -136,7 +134,7 @@ class RFClassifier(BaseRegressor):
 
     def predictWithData(self, data, Y, _featureDesp="all"):
 
-        if self.patientId != 14: return
+        if self.patient_id != 14: return
         # labeling
         sorted_Y = sorted(Y)  # sort ascending
         thresh1 = int(len(sorted_Y) * self.threshold1) - 1
@@ -157,7 +155,7 @@ class RFClassifier(BaseRegressor):
                 cat_Y = [self.categorized_y(y, [sorted_Y[thresh1]]) for y in Y]
                 classes = ['low ' + str(self.threshold1 * 100) + '%', 'high']
 
-        self.incrementalTrain(data, np.asarray(cat_Y))
+        self.incremental_train(data, np.asarray(cat_Y))
 
 
     def tpr(self, cm):

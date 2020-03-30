@@ -14,7 +14,7 @@ _morning = "morning"
 _afternoon = "afternoon"
 _evening = "evening"
 
-def computePerformanceTimeBinned(groundtruth, predictions, timestamps=None, regression=True, plotConfusionMatrix=False, classes=None, patientId=None,model=None):
+def compute_performance_time_binned(groundtruth, predictions, timestamps=None, regression=True, plotConfusionMatrix=False, classes=None, patientId=None, model=None):
     """
     Discretizes timestamps into night, morning, afternoon and evening and returns performance metrics for each time
     bin, as well as overall performance metrics
@@ -102,7 +102,7 @@ def computePerformanceTimeBinned(groundtruth, predictions, timestamps=None, regr
         return results, r
     return results
 
-def computePerformanceMeals(groundtruth, predictions, timestamps=None, carbdata=None, regression=True, plotConfusionMatrix=False, classes=None, patientId=None,model=None):
+def compute_performance_meals(groundtruth, predictions, timestamps=None, carbdata=None, regression=True, plotConfusionMatrix=False, classes=None, patientId=None, model=None):
     """
     Compute performance metrics for subsets of the results based on the time elapsed to the last meal.
     """

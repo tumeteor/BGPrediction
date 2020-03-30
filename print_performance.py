@@ -8,9 +8,12 @@ import MySQLdb.cursors
 import os, errno
 
 import pprint
+
 pp = pprint.PrettyPrinter(indent=2)
 
+
 class ResultsPrinter:
+
 
     def __init__(self, experimentRunId, mode='r'):
         # configure log
@@ -33,11 +36,12 @@ class ResultsPrinter:
         self.experimentTimestamp = None
         self.mode = None
         self.folder = 'results'
-        self.ensureFolderExists(self.folder)
+        self.ensure_folder_exists(self.folder)
         self.result_file = "{}/exp_run_{}_result_summary.txt".format(self.folder, self.experimentRunId)
         self.newline = "\n"
 
-    def ensureFolderExists(self, directory):
+    @staticmethod
+    def ensure_folder_exists(directory):
         """
         Ensure directory exists
         """
@@ -47,7 +51,7 @@ class ResultsPrinter:
             if e.errno != errno.EEXIST:
                 raise
 
-    def loadPatients(self):
+    def load_patients(self):
         """
         Retrieve the patientIDs from database
         """
@@ -56,7 +60,7 @@ class ResultsPrinter:
             cur = self.con.cursor()
             query = "SELECT id FROM BG_Patient " \
                     "WHERE id not in (9) "
-            self.log.debug("loadPatients query: '" + query + "'")
+            self.log.debug("load_patients query: '" + query + "'")
             cur.execute(query)
             logging.debug("{} Patients returned".format(cur.rowcount))
             rows = cur.fetchall()
@@ -66,16 +70,16 @@ class ResultsPrinter:
             for row in rows:
                 self.patientIDs.append(row['id'])
 
-    def printResults(self):
-        self.writeHeader()
-        self.loadPatients()
+    def print_results(self):
+        self.write_header()
+        self.load_patients()
 
         if self.mode == 'r':
-            self.printRegressionResults()
+            self.print_regression_results()
         elif self.mode == 'c':
-               self.printClassificationResults()
+            self.print_classification_results()
 
-    def getExperimentInfo(self):
+    def get_experiment_info(self):
         self.log.info("Retrieving experiment info")
         # retrieve info from db
         with self.con:
@@ -88,7 +92,7 @@ class ResultsPrinter:
             self.experimentTimestamp = result['timestamp']
             self.mode = result['type']
         # construct description string
-        typeString="unknown"
+        typeString = "unknown"
         if self.mode == 'c':
             typeString = 'classification'
         if self.mode == 'r':
@@ -99,21 +103,21 @@ class ResultsPrinter:
         self.log.info("Experiment info: " + experimentInfo)
         return experimentInfo
 
-    def printRegressionResults(self):
+    def print_regression_results(self):
         # aggregated performance
-        self.printRegressionResultsAggregate()
+        self.print_regression_results_aggregate()
         # results by patient
-        self.writeLine("== PATIENT RESULTS ==")
-        self.writeNewline()
+        self.write_line("== PATIENT RESULTS ==")
+        self.write_newline()
         for patient in self.patientIDs:
-            self.printRegressionResultsByPatient(patient)
+            self.print_regression_results_by_patient(patient)
         # patient results by subset
-        self.writeLine("== SUBSET RESULTS ==")
-        self.writeNewline()
+        self.write_line("== SUBSET RESULTS ==")
+        self.write_newline()
         for subset in self.resultSubsets:
-            self.printRegressionResultsPatientsBySubset(subset)
+            self.print_regression_results_patients_by_subset(subset)
 
-    def printRegressionResultsAggregate(self):
+    def print_regression_results_aggregate(self):
         # also store experiment info
         self.log.info("Loading aggregate results")
         with self.con:
@@ -134,25 +138,25 @@ class ResultsPrinter:
                 return
             self.log.info("Writing aggregate results")
             # print latex table header
-            self.writeLine("== Aggregate (averaged) performance ==")
-            self.writeNewline()
-            self.writeLine("Result subset & num_values & MdAE & RMSE & SMAPE \\\\")
+            self.write_line("== Aggregate (averaged) performance ==")
+            self.write_newline()
+            self.write_line("Result subset & num_values & MdAE & RMSE & SMAPE \\\\")
             for row in rows:
                 self.resultSubsets.append(row["subset"])
                 if long(row["num_values"]) == 0:
                     # handle subsets without valid results (and hence no performance numbers)
-                    self.writeLine("{subset} & {num_values} & - & - & - \\\\".format(
+                    self.write_line("{subset} & {num_values} & - & - & - \\\\".format(
                         subset=row["subset"], num_values=row["num_values"]
                     ))
                     continue
 
-                self.writeLine("{subset} & {num_values} & {MdAE:.2f} & {RMSE:.2f} & {SMAPE:.2f} \\\\".format(
+                self.write_line("{subset} & {num_values} & {MdAE:.2f} & {RMSE:.2f} & {SMAPE:.2f} \\\\".format(
                     subset=row["subset"], num_values=row["num_values"], MdAE=row["MdAE"],
                     RMSE=row["RMSE"], SMAPE=row["SMAPE"]
                 ))
-            self.writeNewline()
+            self.write_newline()
 
-    def printRegressionResultsByPatient(self, patientId):
+    def print_regression_results_by_patient(self, patientId):
         """
         Print all regression results for the given patient
         """
@@ -176,25 +180,25 @@ class ResultsPrinter:
                 return
             self.log.info("Writing patient results")
             # print latex table header
-            self.writeLine("Patient {}:".format(patientId))
-            self.writeNewline()
-            self.writeLine("Result subset & num_values & MdAE & RMSE & SMAPE \\\\")
+            self.write_line("Patient {}:".format(patientId))
+            self.write_newline()
+            self.write_line("Result subset & num_values & MdAE & RMSE & SMAPE \\\\")
             # write latex table rows
             for row in rows:
                 if long(row["num_values"]) == 0:
                     # handle subsets without valid results (and hence no performance numbers)
-                    self.writeLine("{subset} & {num_values} & - & - & - \\\\".format(
+                    self.write_line("{subset} & {num_values} & - & - & - \\\\".format(
                         subset=row["subset"], num_values=row["num_values"]
                     ))
                     continue
 
-                self.writeLine("{subset} & {num_values} & {MdAE:.2f} & {RMSE:.2f} & {SMAPE:.2f} \\\\".format(
+                self.write_line("{subset} & {num_values} & {MdAE:.2f} & {RMSE:.2f} & {SMAPE:.2f} \\\\".format(
                     subset=row["subset"], num_values=row["num_values"], MdAE=row["MdAE"],
                     RMSE=row["RMSE"], SMAPE=row["SMAPE"]
                 ))
-            self.writeNewline()
+            self.write_newline()
 
-    def printRegressionResultsPatientsBySubset(self, subset):
+    def print_regression_results_patients_by_subset(self, subset):
         """
         Print patient regression results for the given subset
         """
@@ -217,64 +221,66 @@ class ResultsPrinter:
                 return
             self.log.info("Writing subset results")
             # print latex table header
-            self.writeLine("Subset {}:".format(subset))
-            self.writeNewline()
-            self.writeLine("Patient & num_values & MdAE & RMSE & SMAPE \\\\")
+            self.write_line("Subset {}:".format(subset))
+            self.write_newline()
+            self.write_line("Patient & num_values & MdAE & RMSE & SMAPE \\\\")
             # write latex table rows
             for row in rows:
                 if long(row["num_values"]) == 0:
                     # handle subsets without valid results (and hence no performance numbers)
-                    self.writeLine("{patient} & {num_values} & - & - & - \\\\".format(
+                    self.write_line("{patient} & {num_values} & - & - & - \\\\".format(
                         patient=row["patientID"], num_values=row["num_values"]
                     ))
                     continue
 
-                self.writeLine("{patient} & {num_values} & {MdAE:.2f} & {RMSE:.2f} & {SMAPE:.2f} \\\\".format(
+                self.write_line("{patient} & {num_values} & {MdAE:.2f} & {RMSE:.2f} & {SMAPE:.2f} \\\\".format(
                     patient=row["patientID"], num_values=row["num_values"], MdAE=row["MdAE"],
                     RMSE=row["RMSE"], SMAPE=row["SMAPE"]
                 ))
-            self.writeNewline()
+            self.write_newline()
 
-    def writeHeader(self):
+    def write_header(self):
         """
         Write header info to file. Overwrite file if already exists
         """
         self.log.info("Writing header")
         with open(self.result_file, mode="w") as outfile:
             outfile.write("=== RESULT SUMMARY === \n".format(self.experimentRunId))
-            outfile.write(self.getExperimentInfo() + self.newline)
+            outfile.write(self.get_experiment_info() + self.newline)
             outfile.write(self.newline)
 
-    def writeString(self, string):
+    def write_string(self, string):
         """
         Write a string to the result file
         """""
         with open(self.result_file, mode="a") as outfile:
-                outfile.write(string)
+            outfile.write(string)
 
-    def writeLine(self, line):
+    def write_line(self, line):
         """
         Append a line to the result file
         """
-        self.writeString(line + self.newline)
+        self.write_string(line + self.newline)
 
-    def writeNewline(self):
+    def write_newline(self):
         """
         Write a newline to the resultfile
         """
-        self.writeString(self.newline)
+        self.write_string(self.newline)
 
-    def printClassificationResults(self):
+    def print_classification_results(self):
         self.log.warn('Evaluating classification results is not implemented yet.')
         pass
 
+
 if __name__ == '__main__':
     # command line arguments
-    parser = ArgumentParser(description='Retrieve prediction results for given experiment and print them in usable (latex) form.')
+    parser = ArgumentParser(
+        description='Retrieve prediction results for given experiment and print them in usable (latex) form.')
     parser.add_argument('-id', '--experiment_run_id', help='Id of the experiment run', required=True)
-    #parser.add_argument('-m', '--mode', choices=('c', 'r'), required=True, help='Type of the prediction task')
+    # parser.add_argument('-m', '--mode', choices=('c', 'r'), required=True, help='Type of the prediction task')
     # Note: we could retrieve the type of the task from the db also
     args = parser.parse_args()
 
     instance = ResultsPrinter(experimentRunId=args.experiment_run_id)
-    instance.printResults()
+    instance.print_results()

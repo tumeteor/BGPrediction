@@ -2,7 +2,7 @@ import numpy
 from statsmodels.tsa.arima_model import ARIMA as ARIMA_MODEL
 import pandas as pd
 from prediction.base_regressor import BaseRegressor
-from util.measures import computePerformanceTimeBinned, computePerformanceMeals
+from util.measures import compute_performance_time_binned, compute_performance_meals
 class ARIMA(BaseRegressor):
     ##### Parameters #####
     p = 5 # auto-regressive part of the model, incoporate past values
@@ -13,8 +13,8 @@ class ARIMA(BaseRegressor):
     def __init__(self, patientId, dbConnection):
         super(ARIMA, self).__init__(patientId, dbConnection)
 
-    def saveParams(self):
-        baseParams = self.saveBaseParams();
+    def save_params(self):
+        baseParams = self.save_base_params();
         seq = (baseParams, "p: " + str(self.p), "d: " + str(self.d), "q: " + str(self.q))
         return ";".join(seq)
 
@@ -37,12 +37,12 @@ class ARIMA(BaseRegressor):
             yhat = output[0]
             predictions.append(yhat)
             obs = test[t]
-            size = int(len(self.glucoseData) * self.split_ratio)
+            size = int(len(self.glucose_data) * self.split_ratio)
             history.append(obs)
             print('predicted=%f, expected=%f' % (yhat, obs))
 
          # load timestamps
-        ts_df = self.loadTimestamps(self.con, self.patientId)
+        ts_df = self.load_timestamps(self.con, self.patient_id)
         test_ts = ts_df.tail(len(test))
         results = dict()
         results['groundtruth'] = test
@@ -50,17 +50,17 @@ class ARIMA(BaseRegressor):
         results['times'] = timestamps
         results['indices'] = test_ts['pos'].values
         results['predictions'] = predictions
-        results['performance'] = computePerformanceTimeBinned(
+        results['performance'] = compute_performance_time_binned(
             timestamps=timestamps,
             groundtruth=test,
             predictions=predictions)
-        results['performance'].update(computePerformanceMeals(
+        results['performance'].update(compute_performance_meals(
             timestamps=timestamps,
             groundtruth=test,
             predictions=predictions,
             carbdata=self.carbData
         ))
-        results['params'] = self.saveParams()
+        results['params'] = self.save_params()
 
         return results
 

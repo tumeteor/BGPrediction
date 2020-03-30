@@ -3,7 +3,7 @@ import numpy as np
 from Constant import Constant
 from prediction.base_regressor import BaseRegressor
 import logging
-from util.measures import computePerformanceMeals, computePerformanceTimeBinned
+from util.measures import compute_performance_meals, compute_performance_time_binned
 from sklearn.metrics import confusion_matrix
 class GlobalRegressor(object):
 
@@ -46,7 +46,7 @@ class GlobalRegressor(object):
             else:
                 return 2
 
-    def splitTrainTest(self, data, Y, glucoseData):
+    def split_train_test(self, data, Y, glucoseData):
         # labeling
         sorted_Y = sorted(Y)  # sort ascending
         thresh1 = int(len(sorted_Y) * self.threshold1) - 1
@@ -73,42 +73,42 @@ class GlobalRegressor(object):
         train_size = int(num_groundtruth * self.split_ratio)
         test_size = num_groundtruth - train_size
         # track test instances in original data for access to metadata
-        test_glucoseData = glucoseData[train_size:]
-        assert (len(test_glucoseData) == test_size)
+        test_glucose_data = glucoseData[train_size:]
+        assert (len(test_glucose_data) == test_size)
         # fix train_size, as we ignored the first value
         train_size -= 1
         train_data = data[0:train_size]
         train_y = cat_Y[0:train_size]
         test_data = data[train_size:]
         test_y = cat_Y[train_size:]
-        assert (len(test_y) == len(test_glucoseData))
+        assert (len(test_y) == len(test_glucose_data))
         assert (len(train_y) + len(test_y) + 1 == num_groundtruth)
-        return train_data, train_y, test_data, test_y, classes, test_glucoseData
+        return train_data, train_y, test_data, test_y, classes, test_glucose_data
 
 
-    def toResults(self, test_glucoseData, carbData, test_y, predictions, classes, patientId):
+    def to_results(self, test_glucoseData, carbData, test_y, predictions, classes, patientId):
         timestamps = [item['time'] for item in test_glucoseData]
         results = dict()
         results['groundtruth'] = [item['value'] for item in test_glucoseData]
         results['times'] = timestamps
         results['indices'] = [int(item['index']) for item in test_glucoseData]
-        results['performance'], results['perClass'] = computePerformanceTimeBinned(test_y, predictions,
-                                                                                   timestamps=timestamps,
-                                                                                   regression=False,
-                                                                                   plotConfusionMatrix=False,
-                                                                                   classes=classes,
-                                                                                   patientId=patientId,
-                                                                                   model=self.modelName)
-        r_meal, r_meal_perclass = computePerformanceMeals(test_y, predictions, timestamps=timestamps,
-                                                          plotConfusionMatrix=False,
-                                                          classes=classes, patientId=patientId,
-                                                          carbdata= carbData, regression=False,
-                                                          model=self.modelName)
+        results['performance'], results['perClass'] = compute_performance_time_binned(test_y, predictions,
+                                                                                      timestamps=timestamps,
+                                                                                      regression=False,
+                                                                                      plotConfusionMatrix=False,
+                                                                                      classes=classes,
+                                                                                      patientId=patientId,
+                                                                                      model=self.modelName)
+        r_meal, r_meal_perclass = compute_performance_meals(test_y, predictions, timestamps=timestamps,
+                                                            plotConfusionMatrix=False,
+                                                            classes=classes, patientId=patientId,
+                                                            carbdata= carbData, regression=False,
+                                                            model=self.modelName)
 
         results['performance'].update(r_meal)
         results['perClass'].update(r_meal_perclass)
 
-        results['params'] = self.saveParams()
+        results['params'] = self.save_params()
 
         # Compute confusion matrix
         cnf_matrix = confusion_matrix(test_y, predictions)
@@ -116,35 +116,35 @@ class GlobalRegressor(object):
         results["report"] = str(cnf_matrix)
         return results
 
-    def loadAllData(self):
-        patientIDs = ExperimentData.loadPatients()
+    def load_all_data(self):
+        patient_ids = ExperimentData.load_patients()
         train_X = None
         train_Y = None
         test_X = None
         test_Y = None
         test_patient_data = dict()
         test_patient_y = dict()
-        test_patient_glucoseData = dict()
-        test_patient_carbData = dict()
-        for patientID in patientIDs:
-            baseClf = BaseRegressor(patientId=patientID, dbConnection=ExperimentData.con)
-            data, y = baseClf.extractFeatures()
-            train_data, train_y, test_data, test_y, classes, test_glucoseData = self.splitTrainTest(data,y,glucoseData=baseClf.glucoseData)
+        test_patient_glucose_data = dict()
+        test_patient_carb_data = dict()
+        for patient_id in patient_ids:
+            base_clf = BaseRegressor(patientId=patient_id, dbConnection=ExperimentData.con)
+            data, y = base_clf.extract_features()
+            train_data, train_y, test_data, test_y, classes, test_glucoseData = self.split_train_test(data, y, glucoseData=base_clf.glucose_data)
             print train_data.shape
             train_X = np.concatenate((train_data,train_X), axis=0) if not train_X is None else train_data
             train_Y = np.concatenate((train_y, train_Y), axis=0) if not train_Y is None else train_y
             test_X = np.concatenate((test_data, test_X), axis=0) if not test_X is None else test_data
             test_Y = np.concatenate((test_y, test_Y), axis=0) if not test_Y is None else test_y
-            test_patient_data[patientID] = test_data
-            test_patient_y[patientID] = test_y
-            test_patient_glucoseData[patientID] = test_glucoseData
-            test_patient_carbData[patientID] = baseClf.carbData
-        return train_X, train_Y, test_X, test_Y, test_patient_data, test_patient_y, test_patient_glucoseData, test_patient_carbData, classes
+            test_patient_data[patient_id] = test_data
+            test_patient_y[patient_id] = test_y
+            test_patient_glucose_data[patient_id] = test_glucoseData
+            test_patient_carb_data[patient_id] = base_clf.carbData
+        return train_X, train_Y, test_X, test_Y, test_patient_data, test_patient_y, test_patient_glucose_data, test_patient_carb_data, classes
 
-    def saveParams(self):
+    def save_params(self):
         raise NotImplementedError()
 
-    def saveBaseParams(self):
+    def save_base_params(self):
         return ";".join(
             ("tune: " + str(self.tune), "look_back: " + str(self.look_back), "split_ratio: " + str(self.split_ratio)))
 

@@ -1,6 +1,6 @@
 from prediction.base_regressor import BaseRegressor
-from util.measures import computePerformanceTimeBinned
-from util.measures import computePerformanceMeals
+from util.measures import compute_performance_time_binned
+from util.measures import compute_performance_meals
 
 
 class LastValue(BaseRegressor):
@@ -10,7 +10,7 @@ class LastValue(BaseRegressor):
     def __init__(self, patientId, dbConnection):
         super(LastValue, self).__init__(patientId, dbConnection)
 
-    def saveParams(self):
+    def save_params(self):
         return
 
     def predict(self):
@@ -18,13 +18,13 @@ class LastValue(BaseRegressor):
         Runs last value prediction.
         :return:
         """
-        assert(self.glucoseData)
+        assert(self.glucose_data)
         # split the data
-        num_groundtruth = len(self.glucoseData)
+        num_groundtruth = len(self.glucose_data)
         train_size = int(num_groundtruth * self.split_ratio)
         test_size = num_groundtruth - train_size
-        train_data = self.glucoseData[0:train_size]
-        test_data = self.glucoseData[train_size:]
+        train_data = self.glucose_data[0:train_size]
+        test_data = self.glucose_data[train_size:]
         assert(len(test_data) == test_size)
         # compute avg on training data
         last_value = train_data[-1]['value']
@@ -42,11 +42,11 @@ class LastValue(BaseRegressor):
         results['times'] = timestamps
         results['indices'] = [item['index'] for item in test_data]
         results['predictions'] = predictions
-        results['performance'] = computePerformanceTimeBinned(
+        results['performance'] = compute_performance_time_binned(
             timestamps=timestamps,
             groundtruth=test_values,
             predictions=predictions)
-        results['performance'].update(computePerformanceMeals(
+        results['performance'].update(compute_performance_meals(
             timestamps=timestamps,
             groundtruth=test_values,
             predictions=predictions,

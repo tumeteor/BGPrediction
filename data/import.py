@@ -18,16 +18,16 @@ min_date = None
 max_date = None
 
 
-def createDB():
+def create_db():
   dbname = cfg.data['database']['db']
   engine.execute("CREATE DATABASE "  + dbname)
   engine.execute("USE " + dbname)
 
-def dropDB():
+def drop_db():
   dbname = cfg.data['database']['db']
   engine.execute("DROP DATABASE "  + dbname)
   
-def importPatient():
+def import_patient():
   plist = pd.DataFrame(list(patients.iteritems()), columns=['id','ActivityID'])
   plist['id'] = plist['id'].astype(int)
   plist.set_index('id',inplace=True)
@@ -116,7 +116,7 @@ def read_steps(c):
 
 
 # import insulin data for all patients and metadata
-def importInsulin():
+def import_insulin():
   # import raw without interpolation
   il = pd.read_csv("data/insulin_all.csv",delimiter=";")
   il.reset_index(level=0, inplace=True)
@@ -131,7 +131,7 @@ def importInsulin():
   il.to_sql(name="BG_Insulin", con=engine, if_exists='replace', index=True, index_label=None)
 
 # import carbohydate RAW and steps
-def importT(c,factor):
+def import_t(c, factor):
   # import raw without interpolation
   il = None
   if factor != "steps":
@@ -153,7 +153,7 @@ def importT(c,factor):
   #print bg
   il.to_sql(name=factor, con=engine, if_exists='append', index=True, index_label=None)
 
-def importInstance(c):
+def import_instance(c):
   # TODO: don't read in file twice
   # remark: this is for reading without interplolation
   bg = read_csv("data/"+sys.argv[1] + ".bloodglucose.h",name="bg")
@@ -173,7 +173,7 @@ def importInstance(c):
   #print bg
   bg.to_sql(name='BG_Instance', con=engine, if_exists='append', index=True, index_label=None)
 
-def importTimeseries(bg,c):
+def import_timeseries(bg, c):
   dataset = bg.merge(il, how='outer', left_index=True, right_index=True)
   dataset = dataset.merge(ca, how='outer', left_index=True, right_index=True)
   dataset = dataset.merge(steps, how='outer', left_index=True, right_index=True)
@@ -205,11 +205,11 @@ steps = read_steps("data/aktivitaet.csv")
 
 
 # TODO: in case these share data, exectute them together. If faster execution is necessary for testing, implement testing mode properly (cut of data; read first k lines..)
-if sys.argv[2] == "timeseries": importTimeseries(bg,sys.argv[1])
-elif sys.argv[2] == "instance": importInstance(sys.argv[1])
-elif sys.argv[2] == "patient" : importPatient()
+if sys.argv[2] == "timeseries": import_timeseries(bg, sys.argv[1])
+elif sys.argv[2] == "instance": import_instance(sys.argv[1])
+elif sys.argv[2] == "patient" : import_patient()
 elif sys.argv[2] == "carbohydrate" or sys.argv[2] == "steps": 
-  importT(sys.argv[1],sys.argv[2])
-elif sys.argv[2] == "insulin": importInsulin() 
-#elif sys.argv[2] == "c": createDB()
-#elif sys.argv[2] == "d": dropDB()
+  import_t(sys.argv[1], sys.argv[2])
+elif sys.argv[2] == "insulin": import_insulin()
+#elif sys.argv[2] == "c": create_db()
+#elif sys.argv[2] == "d": drop_db()

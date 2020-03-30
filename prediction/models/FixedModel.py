@@ -16,7 +16,7 @@ class FixedModel(BaseRegressor):
 
         self.korrekturregels = [10,20,30,40,50,60,70,80]
 
-    def saveParams(self):
+    def save_params(self):
         params = "split_ratio: " + str(self.split_ratio)
         return params
 
@@ -67,8 +67,8 @@ class FixedModel(BaseRegressor):
             groundtruths, predictions = self.buildMealtimeData(korrekturregel=korrekturfaktor)
             if len(predictions) == 0:
                 print "number of predictions: {} and number of instances: {}".format(len(predictions),
-                                                                                     len(self.glucoseData))
-                print "Percentage of predictions: {:0.2f}".format(len(predictions) / float(len(self.glucoseData)))
+                                                                                     len(self.glucose_data))
+                print "Percentage of predictions: {:0.2f}".format(len(predictions) / float(len(self.glucose_data)))
                 return
 
             rmse = mean_squared_error(groundtruths, predictions)
@@ -80,18 +80,18 @@ class FixedModel(BaseRegressor):
 
         avg_gt = sum(g) / float(len(g))
         a = [avg_gt] * len(g)
-        print "RMSE: {} for fixed model and avg: {} for patient {}".format(bestScore, mean_squared_error(a,p), self.patientId)
-        print "SMAPE: {} for fixed model and avg: {} for patient {}".format(mean_absolute_percentage_error(g,p), mean_absolute_percentage_error(a,p), self.patientId)
-        print "MdSE: {} for fixed model and avg: {} for patient {}".format(median_absolute_error(g,p), median_absolute_error(a,p), self.patientId)
-        print "number of predictions: {} and number of instances: {}".format(len(predictions), len(self.glucoseData))
-        print "Percentage of predictions: {:0.2f}".format(len(predictions) / float(len(self.glucoseData)) * 100)
+        print "RMSE: {} for fixed model and avg: {} for patient {}".format(bestScore, mean_squared_error(a,p), self.patient_id)
+        print "SMAPE: {} for fixed model and avg: {} for patient {}".format(mean_absolute_percentage_error(g,p), mean_absolute_percentage_error(a,p), self.patient_id)
+        print "MdSE: {} for fixed model and avg: {} for patient {}".format(median_absolute_error(g,p), median_absolute_error(a,p), self.patient_id)
+        print "number of predictions: {} and number of instances: {}".format(len(predictions), len(self.glucose_data))
+        print "Percentage of predictions: {:0.2f}".format(len(predictions) / float(len(self.glucose_data)) * 100)
 
 
 
 
     def buildMealtimeData(self, korrekturfaktor=10,korrekturregel=40):
 
-        n_samples = len(self.glucoseData)
+        n_samples = len(self.glucose_data)
 
         groundtruths = list()
         predictions = list()
@@ -100,11 +100,11 @@ class FixedModel(BaseRegressor):
 
         for i in range(1, n_samples):
             # time of predicted value
-            next_glucose =  self.glucoseData[i]
+            next_glucose =  self.glucose_data[i]
             next_time = next_glucose['time']
 
-            cur_time = self.glucoseData[i - 1]['time']
-            cur_glucose = self.glucoseData[i - 1]['value']
+            cur_time = self.glucose_data[i - 1]['time']
+            cur_glucose = self.glucose_data[i - 1]['value']
 
             delta_time = next_time - cur_time
 
