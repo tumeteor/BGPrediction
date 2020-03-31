@@ -4,7 +4,7 @@ This code base is the Blood Glucose Prediction for the BMBF [Glycorec](https://w
 
 For more information on the background, please refer to our publication: 
 
-> Nguyen, T., & Rokicki, M. (2018). [On the Predictability of non-CGM Diabetes Data for Personalized Recommendation](http://ceur-ws.org/Vol-2482/paper26.pdf).CIKM 2018 Workshops.
+> Nguyen, T., & Rokicki, M. (2018). [On the Predictability of non-CGM Diabetes Data for Personalized Recommendation](http://ceur-ws.org/Vol-2482/paper26.pdf). CIKM 2018 Workshops.
 
 ### Prerequisites
 
